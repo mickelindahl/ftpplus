@@ -1,7 +1,7 @@
 /**
  * Created by s057wl on 2016-07-14.
  */
-'use strict'
+'use strict';
 
 const Code = require('code');   // assertion library
 const Lab=require('lab');
@@ -25,6 +25,24 @@ lab.experiment('plata', function () {
         done();
     });
 
+    lab.test('fetch pers', function (done) {
+        var options={
+            auth:auth,
+            path:process.env.FTP_PATH_PERS,
+            encoding:'binary',
+        }
+
+        Ftp.fetch(options, function(err, results){
+            if (err) {
+                return console.error(err);
+            }
+            console.log(results);
+
+            Code.expect(results).to.be.an.array();
+            done();
+        });
+    });
+
     lab.test('fetch loken', function (done) {
         var options={
             auth:auth,
@@ -40,6 +58,7 @@ lab.experiment('plata', function () {
             done();
         });
     });
+
     lab.test('fetch train running', function (done) {
 
         var options={

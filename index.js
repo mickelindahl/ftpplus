@@ -29,7 +29,7 @@ function fetch(options, callback){
 
 function parse(ls, options){
 
-    var files=[]
+    var files=[];
     if (ls==undefined){
         return files
     }
@@ -91,7 +91,10 @@ function get(options, callback){
                             log.error(err);
                             _callback(err);
                         }else {
-                            _callback(null, str);
+                            _callback(null, {
+                                text:str,
+                                file:file
+                            });
                         }
                     });
                     socket.resume();
