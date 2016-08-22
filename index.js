@@ -12,7 +12,7 @@ function fetch(options, callback){
     ftp.list(options.path, function (err, res) {
         try {
             if (err) {
-                console.error(err)
+                throw err
             }
 
             options.files = parse(res, options);
