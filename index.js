@@ -63,7 +63,7 @@ function get(options, callback){
         calls.push(function(_callback){
             try {
                 if (options.bar != undefined) {
-                    options.bar.tick('Fetching: '+ options.file)
+                    options.bar.setTotal(files.length).tick('Fetching: '+ options.file)
                 }
 
                 var str = '';

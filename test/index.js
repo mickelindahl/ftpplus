@@ -19,45 +19,45 @@ var auth = {
     pass: process.env.FTP_PASS
 };
 
-lab.experiment('plata', function () {
+lab.experiment('parse', function () {
 
     lab.before({},function (done) {
         done();
     });
 
-    lab.test('fetch pers', function (done) {
-        var options={
-            auth:auth,
-            path:process.env.FTP_PATH_PERS,
-            encoding:'binary',
-        }
-
-        Ftp.fetch(options, function(err, results){
-            if (err) {
-                return console.error(err);
-            }
-            console.log(results);
-
-            Code.expect(results).to.be.an.array();
-            done();
-        });
-    });
-
-    lab.test('fetch loken', function (done) {
-        var options={
-            auth:auth,
-            path:process.env.FTP_PATH_LOKEN,
-            encoding:'binary',
-        }
-
-        Ftp.fetch(options, function(err, results){
-            if (err) {
-                return console.log(err);
-            }
-            Code.expect(results).to.be.an.array();
-            done();
-        });
-    });
+    // lab.test('fetch pers', function (done) {
+    //     var options={
+    //         auth:auth,
+    //         path:process.env.FTP_PATH_PERS,
+    //         encoding:'binary',
+    //     }
+    //
+    //     Ftp.fetch(options, function(err, results){
+    //         if (err) {
+    //             return console.error(err);
+    //         }
+    //         console.log(results);
+    //
+    //         Code.expect(results).to.be.an.array();
+    //         done();
+    //     });
+    // });
+    //
+    // lab.test('fetch loken', function (done) {
+    //     var options={
+    //         auth:auth,
+    //         path:process.env.FTP_PATH_LOKEN,
+    //         encoding:'binary',
+    //     }
+    //
+    //     Ftp.fetch(options, function(err, results){
+    //         if (err) {
+    //             return console.log(err);
+    //         }
+    //         Code.expect(results).to.be.an.array();
+    //         done();
+    //     });
+    // });
 
     lab.test('fetch train running', function (done) {
 
@@ -68,22 +68,7 @@ lab.experiment('plata', function () {
             // encoding:'binary',
         }
 
-        Ftp.fetch(options, function(err, results){
-            if (err) {
-                return console.log(err);
-            }
-            Code.expect(results).to.be.an.array();
-            done();
-        });
-    });
-    lab.test('fetch utin', function (done) {
-
-        var options={
-            auth:auth,
-            path:process.env.FTP_PATH_UTIN,
-            limit:1,
-            // encoding:'binary',
-        }
+        console.log(options)
 
         Ftp.fetch(options, function(err, results){
             if (err) {
@@ -93,5 +78,22 @@ lab.experiment('plata', function () {
             done();
         });
     });
+    // lab.test('fetch utin', function (done) {
+    //
+    //     var options={
+    //         auth:auth,
+    //         path:process.env.FTP_PATH_UTIN,
+    //         limit:1,
+    //         // encoding:'binary',
+    //     }
+    //
+    //     Ftp.fetch(options, function(err, results){
+    //         if (err) {
+    //             return console.log(err);
+    //         }
+    //         Code.expect(results).to.be.an.array();
+    //         done();
+    //     });
+    // });
 
 });
