@@ -67,11 +67,11 @@ function get(options, callback){
                 }
 
                 var str = '';
-                // log.debug('path', path)
+                // console.debug('path', path)
                 options.ftp.get(options.path+file, function (err, socket) {
 
                     if (err) {
-                        log.error(err);
+                        console.error(err);
                         _callback(err, null);
                         return
                     };
@@ -88,7 +88,7 @@ function get(options, callback){
 
                     socket.on("close", function (err) {
                         if (err) {
-                            log.error(err);
+                            console.error(err);
                             _callback(err);
                         }else {
                             _callback(null, {
