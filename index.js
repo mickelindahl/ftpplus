@@ -99,7 +99,7 @@ function get(options, callback){
                     socket.resume();
                 })
             }catch(err){
-                console.error(err);
+                console.error('Tick:'+options.bar ? options.bar.counter : 'unknown' +' File:'+file, err);
                 _callback(null,{
                     text:'',
                     file:file
