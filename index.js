@@ -38,11 +38,10 @@ function parse(ls, options){
     ls.split('\r\n').forEach(function(str){
         var file=str.split(' ').pop();
 
-        if (options.lower!=undefined) {
-            if (file <= options.lower!=undefined) {
-                return
-            }
+        if (options.filter && options.filter.indexOf(file)!=-1) {
+            return
         }
+
         if(file==''){
             return
         }

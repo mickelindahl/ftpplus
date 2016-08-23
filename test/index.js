@@ -25,50 +25,29 @@ lab.experiment('parse', function () {
         done();
     });
 
-    // lab.test('fetch pers', function (done) {
-    //     var options={
-    //         auth:auth,
-    //         path:process.env.FTP_PATH_PERS,
-    //         encoding:'binary',
-    //     }
-    //
-    //     Ftp.fetch(options, function(err, results){
-    //         if (err) {
-    //             return console.error(err);
-    //         }
-    //         console.log(results);
-    //
-    //         Code.expect(results).to.be.an.array();
-    //         done();
-    //     });
-    // });
-    //
-    // lab.test('fetch loken', function (done) {
-    //     var options={
-    //         auth:auth,
-    //         path:process.env.FTP_PATH_LOKEN,
-    //         encoding:'binary',
-    //     }
-    //
-    //     Ftp.fetch(options, function(err, results){
-    //         if (err) {
-    //             return console.log(err);
-    //         }
-    //         Code.expect(results).to.be.an.array();
-    //         done();
-    //     });
-    // });
-
-    lab.test('fetch train running', function (done) {
-
+    lab.test('fetch pers', function (done) {
         var options={
             auth:auth,
-            path:process.env.FTP_PATH_TRRU,
-            limit:10,
-            // encoding:'binary',
-        }
+            path:process.env.FTP_PATH_PERS,
+            encoding:'binary'
+        };
 
-        console.log(options)
+        Ftp.fetch(options, function(err, results){
+            if (err) {
+                return console.error(err);
+            }
+
+            Code.expect(results).to.be.an.array();
+            done();
+        });
+    });
+
+    lab.test('fetch loken', function (done) {
+        var options={
+            auth:auth,
+            path:process.env.FTP_PATH_LOKEN,
+            encoding:'binary'
+        };
 
         Ftp.fetch(options, function(err, results){
             if (err) {
@@ -78,22 +57,42 @@ lab.experiment('parse', function () {
             done();
         });
     });
-    // lab.test('fetch utin', function (done) {
-    //
-    //     var options={
-    //         auth:auth,
-    //         path:process.env.FTP_PATH_UTIN,
-    //         limit:1,
-    //         // encoding:'binary',
-    //     }
-    //
-    //     Ftp.fetch(options, function(err, results){
-    //         if (err) {
-    //             return console.log(err);
-    //         }
-    //         Code.expect(results).to.be.an.array();
-    //         done();
-    //     });
-    // });
+
+    lab.test('fetch train running', function (done) {
+
+        var options={
+            auth:auth,
+            path:process.env.FTP_PATH_TRRU,
+            filter: [
+                'TrainRunningInformation_20160420-083401-524.xml',
+                'TrainRunningInformation_20160420-083404-810.xml']
+        };
+
+        Ftp.fetch(options, function(err, results){
+            if (err) {
+                return console.log(err);
+            }
+            Code.expect(results).to.be.an.array();
+            Code.expect(results.length).to.equal(77);
+            done();
+        });
+    });
+
+    lab.test('fetch utin', function (done) {
+
+        var options={
+            auth:auth,
+            path:process.env.FTP_PATH_UTIN,
+            limit:1
+        };
+
+        Ftp.fetch(options, function(err, results){
+            if (err) {
+                return console.log(err);
+            }
+            Code.expect(results).to.be.an.array();
+            done();
+        });
+    });
 
 });
