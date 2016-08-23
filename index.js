@@ -99,7 +99,11 @@ function get(options, callback){
                     socket.resume();
                 })
             }catch(err){
-                _callback(err)
+                console.error(err);
+                _callback(null,{
+                    text:'',
+                    file:file
+                })
             }
         })
     });
