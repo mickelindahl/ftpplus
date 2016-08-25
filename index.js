@@ -63,14 +63,14 @@ function get(options, callback){
             try {
                 if (options.bar != undefined) {
                     options.bar.setTotal(options.files.length).tick('Fetching: '+ file)
-                }
+                };
 
                 var str = '';
                 // console.debug('path', path)
                 options.ftp.get(options.path+file, function (err, socket) {
 
                     if (err) {
-                        console.error(err);
+                        console.error('73', err);
                         throw err;
                         // _callback(err, null);
                         return
@@ -89,7 +89,7 @@ function get(options, callback){
                     socket.on("close", function (err) {
                         if (err) {
                             console.error('Tick:'+options.bar ? options.bar.counter : 'unknown' +' File:'+file, err);
-                            console.error(err);
+                            console.error('92', err);
                             throw err;
                             // _callback(err);
                         }else {
