@@ -71,7 +71,8 @@ function get(options, callback){
 
                     if (err) {
                         console.error(err);
-                        _callback(err, null);
+                        throw err;
+                        // _callback(err, null);
                         return
                     };
 
@@ -89,7 +90,8 @@ function get(options, callback){
                         if (err) {
                             console.error('Tick:'+options.bar ? options.bar.counter : 'unknown' +' File:'+file, err);
                             console.error(err);
-                            _callback(err);
+                            throw err;
+                            // _callback(err);
                         }else {
                             _callback(null, {
                                 text:str,
