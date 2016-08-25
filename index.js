@@ -7,24 +7,34 @@ const Async=require('async');
 
 function fetch(options, callback){
 
-    var ftp = new Ftp(options.auth);
-    options.ftp=ftp;
-    ftp.list(options.path, function (err, res) {
-        try {
-            if (err) {
-                throw err
+    try {
+        var ftp = new Ftp(options.auth);
+        options.ftp = ftp;
+    }catch(err){
+        console.error('ftp connect failed', err)
+        throw err
+    }
+    try{
+        ftp.list(options.path, function (err, res) {
+            try {
+                if (err) {
+                    throw err
+                }
+
+                options.files = parse(res, options);
+
+                get(options, callback);
+
+                // callback(null,files)
+
+            } catch (err) {
+                callback(err)
             }
-
-            options.files = parse(res, options);
-
-            get(options, callback);
-
-            // callback(null,files)
-
-        }catch(err){
-            callback(err)
-        }
-    });
+        });
+    }catch(err){
+        console.error('ftp list failed', err)
+        throw err
+    }
 }
 
 function parse(ls, options){
@@ -60,7 +70,6 @@ function get(options, callback){
     var calls=[];
     options.files.forEach(function(file){
         calls.push(function(_callback){
-            try {
                 if (options.bar != undefined) {
                     options.bar.setTotal(options.files.length).tick('Fetching: '+ file)
                 };
@@ -70,9 +79,13 @@ function get(options, callback){
                 options.ftp.get(options.path+file, function (err, socket) {
 
                     if (err) {
-                        console.error('73', err);
-                        throw err;
-                        // _callback(err, null);
+                        console.error('ftp get failed', err);
+
+                        _callback(null, {
+                            text:str,
+                            file:file
+                        });
+
                         return
                     };
 
@@ -88,26 +101,15 @@ function get(options, callback){
 
                     socket.on("close", function (err) {
                         if (err) {
-                            console.error('Tick:'+options.bar ? options.bar.counter : 'unknown' +' File:'+file, err);
-                            console.error('92', err);
-                            throw err;
-                            // _callback(err);
-                        }else {
-                            _callback(null, {
-                                text:str,
-                                file:file
-                            });
+                            console.error('ftp get close failed', err);
                         }
+                        _callback(null, {
+                            text:str,
+                            file:file
+                        });
                     });
                     socket.resume();
                 })
-            }catch(err){
-                console.error('Tick:'+options.bar ? options.bar.counter : 'unknown' +' File:'+file, err);
-                _callback(null,{
-                    text:'',
-                    file:file
-                })
-            }
         })
     });
 
