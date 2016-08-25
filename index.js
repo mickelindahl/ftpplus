@@ -87,6 +87,7 @@ function get(options, callback){
 
                     socket.on("close", function (err) {
                         if (err) {
+                            console.error('Tick:'+options.bar ? options.bar.counter : 'unknown' +' File:'+file, err);
                             console.error(err);
                             _callback(err);
                         }else {
