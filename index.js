@@ -86,8 +86,8 @@ function get(options, callback){
                             file:file
                         });
 
-                        console.log('closing socket')
-                        socket.emit('close');
+                        // console.log('closing socket');
+                        // socket.emit('close');
 
                         return
                     };
