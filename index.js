@@ -149,7 +149,7 @@ function stream(file, options){
 
                 debug('close stream ' +file)
 
-                str=options.skip && options.skip(str) ? '' : str;
+                str=options.skip && options.skip.fun(str, options.skip.options) ? '' : str;
 
                 resolve({
                     text:str,
