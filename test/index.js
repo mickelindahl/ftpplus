@@ -27,7 +27,7 @@ lab.experiment('parse', function () {
         done();
     });
 
-    lab.test('fetch pers with parse', function (done) {
+    lab.test('fetch crew with parse', function (done) {
         var options={
             auth:auth,
             path:process.env.FTP_PATH_PERS,
@@ -46,57 +46,84 @@ lab.experiment('parse', function () {
         })
     });
 
-    // lab.test('fetch loken', function (done) {
-    //     var options={
-    //         auth:auth,
-    //         path:process.env.FTP_PATH_LOKEN,
-    //         encoding:'binary'
-    //     };
-    //
-    //     Ftp.fetch(options, function(err, results){
-    //         if (err) {
-    //             return console.log(err);
-    //         }
-    //         Code.expect(results).to.be.an.array();
-    //         done();
-    //     });
-    // });
-    //
-    // lab.test('fetch train running', function (done) {
-    //
-    //     var options={
-    //         auth:auth,
-    //         path:process.env.FTP_PATH_TRRU,
-    //         filter: [
-    //             'TrainRunningInformation_20160420-083401-524.xml',
-    //             'TrainRunningInformation_20160420-083404-810.xml']
-    //     };
-    //
-    //     Ftp.fetch(options, function(err, results){
-    //         if (err) {
-    //             return console.log(err);
-    //         }
-    //         Code.expect(results).to.be.an.array();
-    //         Code.expect(results.length).to.equal(77);
-    //         done();
-    //     });
-    // });
-    //
-    // lab.test('fetch utin', function (done) {
-    //
-    //     var options={
-    //         auth:auth,
-    //         path:process.env.FTP_PATH_UTIN,
-    //         limit:1
-    //     };
-    //
-    //     Ftp.fetch(options, function(err, results){
-    //         if (err) {
-    //             return console.log(err);
-    //         }
-    //         Code.expect(results).to.be.an.array();
-    //         done();
-    //     });
-    // });
+    lab.test('fetch loken', function (done) {
+        var options={
+            auth:auth,
+            path:process.env.FTP_PATH_LOKEN,
+            encoding:'binary'
+        };
+
+        Ftp.fetch(options, function(err, results){
+            if (err) {
+                return console.log(err);
+            }
+            Code.expect(results).to.be.an.array();
+            done();
+        });
+    });
+
+    lab.test('fetch train running', function (done) {
+
+        var options={
+            auth:auth,
+            path:process.env.FTP_PATH_TRRU,
+            exclude: [
+                'TrainRunningInformation_20160420-083401-524.xml',
+                'TrainRunningInformation_20160420-083404-810.xml']
+            };
+
+
+        Ftp.fetch(options, function(err, results){
+            if (err) {
+                return console.log(err);
+            }
+            Code.expect(results).to.be.an.array();
+            Code.expect(results.length).to.equal(77);
+            done();
+        });
+    });
+
+    lab.test('fetch utin', function (done) {
+
+        var options={
+            auth:auth,
+            path:process.env.FTP_PATH_UTIN,
+            limit:1,
+            filter:['utin_test_data.xml'],
+        };
+
+        Ftp.fetch(options, function(err, results){
+            if (err) {
+                return console.log(err);
+            }
+            Code.expect(results[0].json).to.equal(undefined);
+            Code.expect(results).to.be.an.array();
+            done();
+        });
+    });
+
+    lab.test('fetch utin with parse and promise', function (done) {
+
+        var options={
+            auth:auth,
+            path:process.env.FTP_PATH_UTIN,
+            limit:1,
+            filter:['UtinTTResp20160420-001317-963', 'utin_test_data.xml'],
+            post_process:Parse.timetable
+        };
+
+        Ftp.fetch(options).then((results)=>{
+
+            debug(results[0].json.length)
+
+            Code.expect(results[0].json.length).to.equal(257);
+            Code.expect(results).to.be.an.array();
+            done();
+
+        }).catch((err)=>{
+            console.error(err);
+            done()
+        })
+    });
 
 });

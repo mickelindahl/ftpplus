@@ -5,7 +5,6 @@
 'use strict';
 
 const Ftp=require('jsftp');
-const Async=require('async');
 const Promise=require('bluebird');
 const debug=require('debug')('ftpplus');
 
@@ -36,6 +35,8 @@ function fetch(options, callback){
         return new Promise((resolve, reject)=> {
             options.ftp.list(options.path, function (err, res) {
 
+                debug(res);
+
                 if (err) reject(err);
 
                 try {
@@ -57,34 +58,17 @@ function fetch(options, callback){
         return get(options)
 
     }).then((results)=>{
-        if (_callback) _callback(null, results)
+
+        if (_callback) _callback(null, results);
         else return results
+
     }).catch((err)=>{
-        if (_callback) _callback(err, null)
+
+        if (_callback) _callback(err, null);
         else throw err
+
     });
 
-    // try{
-    //     ftp.list(options.path, function (err, res) {
-    //         try {
-    //             if (err) {
-    //                 throw err
-    //             }
-    //
-    //             options.files = parse(res, options);
-    //
-    //             get(options, callback);
-    //
-    //             // callback(null,files)
-    //
-    //         } catch (err) {
-    //             callback(err)
-    //         }
-    //     });
-    // }catch(err){
-    //     console.error('ftp list failed', err)
-    //     throw err
-    // }
 }
 
 function parse(ls, options){
@@ -98,14 +82,20 @@ function parse(ls, options){
     ls.split('\r\n').forEach(function(str){
         var file=str.split(' ').pop();
 
-        if (options.filter && options.filter.indexOf(file)!=-1) {
+        debug(options.filter,file)
+
+        if (options.filter && options.filter.indexOf(file)==-1) {
+            return
+        }
+
+        if (options.exclude && options.exclude.indexOf(file)!=-1) {
             return
         }
 
         if(file==''){
             return
         }
-        if (i>options.limit){
+        if (i>=options.limit){
             return
         }
         files.push(file);
@@ -144,6 +134,7 @@ function stream(file, options){
                 } else {
                     str += buffer.toString();
                 }
+
             });
 
             socket.on("close", function (err) {
@@ -156,21 +147,38 @@ function stream(file, options){
 
                 }
 
+                debug('close stream ' +file)
+
                 str=options.skip && options.skip(str) ? '' : str;
 
                 resolve({
-
                     text:str,
                     file:file
-
                 });
             });
             socket.resume();
         })
-    }).catch((result)=>{
+    }).then((resolved)=>{
 
-        console.error(result.err);
-        return result
+        if (options.post_process){
+
+            // debug(resolved.text)
+            // debug(options.post_process)
+            return options.post_process(resolved).then((json)=>{
+
+                debug('parsing to json done')
+
+                resolved.json=json;
+                return resolved;
+            })
+
+        }else return resolved;
+
+    }).catch((err)=>{
+
+        console.error(err);
+        throw err
+
     })
 }
 
@@ -186,72 +194,21 @@ function get(options, done){
         });
         return current;
     })).then((resolved)=> {
-        return options.post_process
-            ? options.post_process(resolved)
-            : resolved
 
-    }).then((resolved)=> {
+        // debug(resolved)
+
+        resolved=resolved.reduce( (tot , val)=>{
+            if (val.text!=''){
+                tot.push(val)
+            }
+            return tot
+        },[]);
 
         if (done) done(resolved);
         else return resolved;
 
         // results is an array of names
     });
-
-
-    // var calls=[];
-    // options.files.forEach(function(file){
-    //     calls.push(function(_callback){
-    //         if (options.bar != undefined) {
-    //             options.bar.setTotal(options.files.length).tick('Fetching: '+ file)
-    //         };
-    //
-    //         var str = '';
-    //         // console.debug('path', path)
-    //         options.ftp.get(options.path+file, function (err, socket) {
-    //
-    //             if (err) {
-    //                 console.error('ftp get failed', err);
-    //
-    //                 _callback(null, {
-    //                     text:str,
-    //                     file:file
-    //                 });
-    //
-    //                 // console.log('closing socket');
-    //                 // socket.emit('close');
-    //
-    //                 return
-    //             };
-    //
-    //             socket.on("data", function (buffer) {
-    //
-    //                 // binary encoding needed for loken
-    //                 if (options.encoding != undefined) {
-    //                     str += buffer.toString(options.encoding);
-    //                 } else {
-    //                     str += buffer.toString();
-    //                 }
-    //             });
-    //
-    //             socket.on("close", function (err) {
-    //                 if (err) {
-    //                     console.error('ftp get close failed', err);
-    //                 }
-    //                 _callback(null, {
-    //                     text:str,
-    //                     file:file
-    //                 });
-    //             });
-    //             socket.resume();
-    //         })
-    //     })
-    // });
-    //
-    // Async.series(calls,
-    //     function(err,results){
-    //         callback(err, results);
-    //     })
 }
 
 module.exports={
