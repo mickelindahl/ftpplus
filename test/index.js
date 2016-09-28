@@ -128,7 +128,7 @@ lab.experiment('parse', function () {
 
             // debug(results[0].json.length)
 
-            Code.expect(results.length).to.equal(1);
+            Code.expect(results.length).to.equal(2);
             Code.expect(results[0].json.length).to.equal(257);
             Code.expect(results).to.be.an.array();
             done();

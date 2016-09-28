@@ -197,13 +197,6 @@ function get(options, done){
 
         // debug(resolved)
 
-        resolved=resolved.reduce( (tot , val)=>{
-            if (val.text!=''){
-                tot.push(val)
-            }
-            return tot
-        },[]);
-
         if (done) done(resolved);
         else return resolved;
 
