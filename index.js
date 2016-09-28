@@ -110,10 +110,6 @@ function stream(file, options){
 
     return new Promise((resolve, reject)=>{
 
-        if (options.bar != undefined) {
-            options.bar.setTotal(options.files.length).tick('Fetching: '+ file)
-        };
-
         var str = '';
         // console.debug('path', path)
         options.ftp.get(options.path+file, function (err, socket) {
@@ -146,6 +142,10 @@ function stream(file, options){
                     });
 
                 }
+
+                if (options.bar != undefined) {
+                    options.bar.setTotal(options.files.length).tick('Fetching: '+ file)
+                };
 
                 debug('close stream ' +file)
 
