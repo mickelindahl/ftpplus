@@ -10,9 +10,7 @@ const debug=require('debug')('ftpplus');
 
 let _callback;
 
-function fetch(options, callback){
-
-    _callback=callback;
+function fetch(options, done){
 
     return new Promise((resolve,reject)=>{
 
@@ -59,12 +57,14 @@ function fetch(options, callback){
 
     }).then((results)=>{
 
-        if (_callback) _callback(null, results);
+        debug('done')
+        if (done) done(null, results);
         else return results
 
     }).catch((err)=>{
 
-        if (_callback) _callback(err, null);
+        debug('error')
+        if (done) done(err, null);
         else throw err
 
     });
@@ -182,7 +182,7 @@ function stream(file, options){
     })
 }
 
-function get(options, done){
+function get(options){
 
     // start with current being an "empty" already-fulfilled promise
     var current = Promise.resolve();
@@ -194,15 +194,13 @@ function get(options, done){
 
             return stream(file, options)
         });
+
         return current;
+
     })).then((resolved)=> {
 
-        // debug(resolved)
+         return resolved;
 
-        if (done) done(resolved);
-        else return resolved;
-
-        // results is an array of names
     });
 }
 
