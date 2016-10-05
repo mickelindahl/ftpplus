@@ -143,7 +143,7 @@ function stream(file, options){
 
                 }
 
-                if (options.bar != undefined) {
+                if (options.bar != undefined && options.files) {
                     options.bar.setTotal(options.files.length).tick('Fetching: '+ file)
                 };
 
