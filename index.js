@@ -147,7 +147,7 @@ function stream(file, options){
                     options.bar.setTotal(options.files.length).tick('Fetching: '+ file)
                 };
 
-                debug('close stream ' +file)
+                debug('close stream ' +file);
 
                 str=options.skip && options.skip.fun(str, options.skip.options) ? '' : str;
 
@@ -184,12 +184,14 @@ function stream(file, options){
 
 function get(options, done){
 
-
     // start with current being an "empty" already-fulfilled promise
     var current = Promise.resolve();
 
     return Promise.all(options.files.map((file)=> {
         current = current.then(function() {
+
+            debug('promise.all step')
+
             return stream(file, options)
         });
         return current;
