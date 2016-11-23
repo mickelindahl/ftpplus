@@ -4,206 +4,210 @@
 
 'use strict';
 
-const Ftp=require('jsftp');
-const Promise=require('bluebird');
-const debug=require('debug')('ftpplus');
+const Ftp = require( 'jsftp' );
+const Promise = require( 'bluebird' );
+const debug = require( 'debug' )( 'ftpplus' );
 
-let _callback;
+let _options; // handle for options
 
-function fetch(options, done){
+function fetch( options, done ) {
 
-    return new Promise((resolve,reject)=>{
+    _options = options;
+
+    return new Promise( ( resolve, reject )=> {
 
         try {
 
-            var ftp = new Ftp(options.auth);
-            options.ftp = ftp;
+            var ftp = new Ftp( _options.auth );
+            _options.ftp = ftp;
 
-            debug('ftp created')
+            debug( 'ftp created' );
 
-            resolve(options)
-        }catch(err) {
+            resolve()
+        } catch ( err ) {
 
-            reject(err)
+            reject( err )
 
         }
 
-    }).then((options)=>{
+    } ).then( ()=> {
 
-        return new Promise((resolve, reject)=> {
-            options.ftp.list(options.path, function (err, res) {
+        return new Promise( ( resolve, reject )=> {
+            _options.ftp.list( _options.path, function ( err, res ) {
 
-                debug(res);
+                if ( err ) return reject( err );
 
-                if (err) reject(err);
+                _options.files = toFiles( res );
 
-                try {
+                debug( 'files parsed', _options.files )
 
-                    options.files = parse(res, options);
+                resolve();
 
-                    debug('files parsed', options.files)
+            } );
+        } )
+    } ).then( ()=> {
 
-                    resolve(options);
+        return get_data()
 
-                } catch (err) {
+    } ).then( ( results )=> {
 
-                    reject(err)
-                }
-            });
-        })
-    }).then((options)=>{
+         return results
 
-        return get(options)
+    } ).catch( ( err )=> {
 
-    }).then((results)=>{
+        throw err
 
-        debug('done')
-        if (done) done(null, results);
-        else return results
-
-    }).catch((err)=>{
-
-        debug('error')
-        if (done) done(err, null);
-        else throw err
-
-    });
+    } );
 
 }
 
-function parse(ls, options){
+function toFiles( ls ) {
 
-    var files=[];
-    if (ls==undefined){
+    var files = [];
+    if ( ls == undefined ) {
         return files
     }
 
-    var i=0;
-    ls.split('\r\n').forEach(function(str){
-        var file=str.split(' ').pop();
+    var i = 0;
+    ls.split( '\r\n' ).forEach( function ( str ) {
+        var file = str.split( ' ' ).pop();
 
-        debug(options.filter,file)
+        debug( 'filter:', _options.filter,'file:', file );
 
-        if (options.filter && options.filter.indexOf(file)==-1) {
+        if ( _options.filter && _options.filter.indexOf( file ) == -1 ) {
             return
         }
 
-        if (options.exclude && options.exclude.indexOf(file)!=-1) {
+        if ( _options.exclude && _options.exclude.indexOf( file ) != -1 ) {
             return
         }
 
-        if(file==''){
+        if ( file == '' ) {
             return
         }
-        if (i>=options.limit){
+        if ( i >= _options.limit ) {
             return
         }
-        files.push(file);
-        i+=1;
-    });
+        files.push( file );
+        i += 1;
+    } );
 
     return files
 
 }
 
-function stream(file, options){
+function stream( file ) {
 
-    return new Promise((resolve, reject)=>{
+    return new Promise( ( resolve, reject )=> {
 
         var str = '';
         // console.debug('path', path)
-        options.ftp.get(options.path+file, function (err, socket) {
+        _options.ftp.get( _options.path + file, function ( err, socket ) {
 
-            if (err) {
+
+            if ( err ) {
                 return reject( {
-                    text:str,
-                    file:file,
-                    err:err,
-                });
+                    text: str,
+                    file: file,
+                    err: err,
+                } );
             };
 
-            socket.on("data", function (buffer) {
+            socket.on( "data", function ( buffer ) {
 
                 // binary encoding needed for loken
-                if (options.encoding != undefined) {
-                    str += buffer.toString(options.encoding);
+                if ( _options.encoding != undefined ) {
+                    str += buffer.toString( _options.encoding );
                 } else {
                     str += buffer.toString();
                 }
 
-            });
+            } );
 
-            socket.on("close", function (err) {
-                if (err) {
+            socket.on( "close", function ( err ) {
+                if ( err ) {
                     return reject( {
-                        text:str,
-                        file:file,
-                        err:err,
-                    });
+                        text: str,
+                        file: file,
+                        err: err,
+                    } );
 
                 }
 
-                if (options.bar != undefined && options.files) {
-                    options.bar.setTotal(options.files.length).tick('Fetching: '+ file)
+                if ( _options.bar != undefined && _options.files ) {
+                    _options.bar.setTotal( _options.files.length ).tick( 'Fetching: ' + file )
                 };
 
-                debug('close stream ' +file);
+                debug( 'close stream ' + file );
 
-                str=options.skip && options.skip.fun(str, options.skip.options) ? '' : str;
+                str = _options.skip && _options.skip.fun( str, _options.skip.options ) ? '' : str;
 
-                resolve({
-                    text:str,
-                    file:file
-                });
-            });
+                resolve( {
+                    text: str,
+                    file: file
+                } );
+            } );
             socket.resume();
-        })
-    }).then((resolved)=>{
+        } )
+    } ).then( ( resolved )=> {
 
-        if (options.post_process){
+        if ( _options.to_json) {
 
-            // debug(resolved.text)
+            debug('resolved.text', resolved.text)
             // debug(options.post_process)
-            return options.post_process(resolved).then((json)=>{
+            return _options.to_json( resolved.text ).then( ( json )=> {
 
-                debug('parsing to json done')
+                debug( 'parsing to json done' );
 
-                resolved.json=json;
+                resolved.json = json;
                 return resolved;
-            })
+            } )
 
-        }else return resolved;
+        } else return resolved;
 
-    }).catch((err)=>{
+    } ).catch( ( err )=> {
 
-        console.error(err);
         throw err
 
-    })
+    } )
 }
 
-function get(options){
+function get_data() {
 
     // start with current being an "empty" already-fulfilled promise
     var current = Promise.resolve();
 
-    return Promise.all(options.files.map((file)=> {
-        current = current.then(function() {
+    return Promise.all( _options.files.map( ( file )=> {
+        current = current.then( function () {
 
-            debug('promise.all step')
+            debug( 'promise.all step' )
 
-            return stream(file, options)
-        });
+            return stream( file )
+        } );
 
         return current;
 
-    })).then((resolved)=> {
+    } ) ).then( ( resolved )=> {
 
-         return resolved;
+        let results = {};
 
-    });
+        results.text = resolved.reduce( ( tot, e )=> {
+            return tot.concat( e.text )
+        }, [] );
+
+        if ( _options.to_json ) {
+
+            results.json = resolved.reduce( ( tot, e )=> {
+                return tot.concat( e.json )
+            }, [] );
+
+        }
+
+        return resolved;
+
+    } );
 }
 
-module.exports={
-    'fetch':fetch
+module.exports = {
+    'fetch': fetch
 }

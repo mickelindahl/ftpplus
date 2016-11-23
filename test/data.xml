@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ns1:BVTrainRunningInformation xmlns:ns1="urn:BVTAF">
+    <ns1:MessageHeader><ns1:MessageStatus>1</ns1:MessageStatus><ns1:MessageReference>
+        <ns1:MessageType MessageTypeCode="0"></ns1:MessageType>
+        <ns1:MessageNumber>767056</ns1:MessageNumber>
+        <ns1:MessageDateTime>2016-04-20T08:34:00.9443294+02:00
+        </ns1:MessageDateTime></ns1:MessageReference>
+        <ns1:Sender>10001</ns1:Sender>
+        <ns1:Recipient>10030</ns1:Recipient>
+    </ns1:MessageHeader>
+    <ns1:TrainIdent>
+        <ns1:PathIdent>037006</ns1:PathIdent>
+        <ns1:ScheduledDepartureDateTime>2016-04-20T03:03:00</ns1:ScheduledDepartureDateTime>
+        <ns1:PathDepartureLocation>
+            <ns1:CountryCode>SE</ns1:CountryCode>
+            <ns1:LocationPrimaryCode>99999</ns1:LocationPrimaryCode>
+            <ns1:LocationSubsidiaryCode LocationSubsidiaryTypeCode="05">PHM</ns1:LocationSubsidiaryCode>
+        </ns1:PathDepartureLocation>
+    </ns1:TrainIdent>
+    <ns1:TrainLocationReport>
+        <ns1:LocationIdent>
+            <ns1:CountryCode>SE</ns1:CountryCode>
+            <ns1:LocationPrimaryCode>99999</ns1:LocationPrimaryCode>
+            <ns1:LocationSubsidiaryCode LocationSubsidiaryTypeCode="05">Sä</ns1:LocationSubsidiaryCode>
+        </ns1:LocationIdent>
+        <ns1:TrainLocationStatusReport>
+            <ns1:TrainLocationStatus>04</ns1:TrainLocationStatus>
+            <ns1:TimeAtLocation>2016-04-20T08:33:00</ns1:TimeAtLocation>
+            <ns1:TrainDelayAgainstBooked>+0028</ns1:TrainDelayAgainstBooked>
+        </ns1:TrainLocationStatusReport>
+    </ns1:TrainLocationReport>
+</ns1:BVTrainRunningInformation>

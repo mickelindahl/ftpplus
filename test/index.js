@@ -3,169 +3,236 @@
  */
 'use strict';
 
-const Code = require('code');   // assertion library
-const Lab=require('lab');
-const Path=require('path');
-const Ftp = require('../index');
-const debug=require('debug')('ftpplus:test');
-const Parse=require('parse');
+const Mock = require( 'mock-require' );
+const EventEmitter = require( 'events' );
+
+class MySocket extends EventEmitter {
+
+    constructor(auth) {
+        super(auth, auth);
+        this.resume = ()=> {};
+    }
+}
+
+function ftp( auth ) {
+
+    if ( auth.error ) {
+        throw 'error'
+    };
+
+    debug( auth )
+    return {
+        list: ( path, done )=> {
+
+            if (auth.list_error){
+                return done( 'list_error' )
+            }
+            if (auth.no_files){
+                return done( null, undefined )
+            }
+            done( null, Fs.readFileSync( __dirname + '/list_files.txt', 'binary' ) )
+
+        },
+        get: ( path, done )=> {
+
+            if (auth.get_error) return done( 'get_error');
+
+            let my_socket = new MySocket();
+
+            done( null, my_socket );
+
+            let data = Fs.readFileSync( __dirname + '/data.xml', 'binary' );
+
+            for ( let i = 0; i < data.length / 10; i++ ) {
+
+                my_socket.emit( 'data', data.slice( i * 10, (i + 1) * 10 ) )
+
+            }
+
+            if (auth.close_error) return my_socket.emit( 'close', 'close_error' );
+
+            my_socket.emit( 'close', null )
+
+        },
+
+    }
+}
+
+Mock( 'jsftp', ftp );
+
+const Code = require( 'code' );   // assertion library
+const Lab = require( 'lab' );
+const Path = require( 'path' );
+const Ftp = require( '../index' );
+const Fs = require( 'fs' );
+const debug = require( 'debug' )( 'ftpplus:test' );
+const Parse = require( 'parse' );
+const ParseString = require( 'xml2js' ).parseString;
+const Promise = require( 'bluebird' );
 
 var lab = exports.lab = Lab.script();
 var root = Path.resolve();
 
-require('dotenv').config({path: root+'/testenv'});
+require( 'dotenv' ).config( { path: root + '/testenv' } );
+
 var auth = {
-    host: process.env.FTP_HOST,
-    port: process.env.FTP_PORT,
-    user: process.env.FTP_USER,
-    pass: process.env.FTP_PASS
+    host: 'me.com',
+    port: 1111,
+    user: 'dawg',
+    pass: 'secret'
 };
 
-lab.experiment('parse', function () {
+lab.experiment( 'parse', function () {
 
-    lab.before({},function (done) {
+    lab.before( {}, function ( done ) {
         done();
-    });
+    } );
 
-    lab.test('fetch crew with parse', function (done) {
-        var options={
-            auth:auth,
-            path:process.env.FTP_PATH_PERS,
-            encoding:'binary',
-            post_process:Parse.crews
+    lab.test( 'fetch with parse', function ( done ) {
+        var options = {
+            auth: auth,
+            path: '/home/dawg/files',
+            encoding: 'binary',
+            to_json: ( text )=> {
+
+                return new Promise( ( resolve, reject )=> {
+
+                    ParseString( text, function ( err, result ) {
+
+                        if ( err ) reject( err );
+
+                        debug( 'Timetable to xml done' );
+
+                        resolve( result );
+                    } )
+                } )
+            }
         };
 
-        Ftp.fetch(options).then((results)=>{
+        Ftp.fetch( options ).then( ( results )=> {
 
-            Code.expect(results).to.be.an.array();
+            Code.expect( results ).to.be.an.array();
+            Code.expect( results.length ).to.equal( 6 );
             done();
 
-        }).catch((err)=>{
-            console.error(err);
+        } )
+    } );
+
+    lab.test( 'fetch no to_json, no encoding, limit, skip and bar', function ( done ) {
+        var options = {
+            auth: auth,
+            path: process.env.FTP_PATH_PERS,
+            limit:2,
+            bar:{setTotal:()=>{return {tick:()=>{}}}},
+            skip:{fun:()=>{return true}}
+        };
+
+        Ftp.fetch( options ).then( ( results )=> {
+
+            Code.expect( results ).to.be.an.array();
+            Code.expect( results.length ).to.equal( 2 );
+            done();
+        } )
+    } );
+
+    lab.test( 'fetch with filter', function ( done ) {
+        var options = {
+            auth: auth,
+            path: process.env.FTP_PATH_PERS,
+            encoding: 'binary',
+            filter:['test.xml']
+        };
+
+        Ftp.fetch( options ).then( ( results )=> {
+
+            Code.expect( results ).to.be.an.array();
+            Code.expect( results.length ).to.equal( 1 );
+            done();
+        } )
+    } );
+
+
+    lab.test( 'fetch with exclude', function ( done ) {
+        var options = {
+            auth: auth,
+            path: process.env.FTP_PATH_PERS,
+            encoding: 'binary',
+            exclude:['test.xml']
+        };
+
+        Ftp.fetch( options ).then( ( results )=> {
+
+            Code.expect( results ).to.be.an.array();
+            Code.expect( results.length ).to.equal( 5 );
+            done();
+
+        } )
+    } );
+
+    lab.test( 'fetch ftp no files', function ( done ) {
+        var options = {
+            auth: {'no_files':true},
+        };
+
+        Ftp.fetch( options ).then( ( results )=> {
+
+            Code.expect( results ).to.be.an.array();
+            Code.expect( results.length ).to.equal( 0 );
+            done();
+
+        } )
+    } );
+
+    lab.test( 'fetch ftp error', function ( done ) {
+        var options = {
+            auth: {'error':true},
+        };
+
+        Ftp.fetch( options ).catch( ( err )=> {
+
+            Code.expect( err).to.equal( 'error' );
             done()
-        })
-    });
 
-    lab.test('fetch loken', function (done) {
-        var options={
-            auth:auth,
-            path:process.env.FTP_PATH_LOKEN,
-            encoding:'binary'
+        } )
+    } );
+
+    lab.test( 'fetch ftp.list error', function ( done ) {
+        var options = {
+            auth: {'list_error':true},
         };
 
-        Ftp.fetch(options, function(err, results){
-            if (err) {
-                return console.log(err);
-            }
-            Code.expect(results).to.be.an.array();
-            done();
-        });
-    });
+        Ftp.fetch( options ).catch( ( err )=> {
 
-    lab.test('fetch train running', function (done) {
-
-        var options={
-            auth:auth,
-            path:process.env.FTP_PATH_TRRU,
-            exclude: [
-                'TrainRunningInformation_20160420-083401-524.xml',
-                'TrainRunningInformation_20160420-083404-810.xml']
-            };
-
-
-        Ftp.fetch(options, function(err, results){
-            if (err) {
-                return console.log(err);
-            }
-            Code.expect(results).to.be.an.array();
-            Code.expect(results.length).to.equal(77);
-            done();
-        });
-    });
-
-    lab.test('fetch utin', function (done) {
-
-        var options={
-            auth:auth,
-            path:process.env.FTP_PATH_UTIN,
-            limit:1,
-            post_process:Parse.timetable,
-            filter:['utin_test_data.xml'],
-        };
-
-        Ftp.fetch(options, function(err, results){
-            if (err) {
-                return console.log(err);
-            }
-
-            Code.expect(results[0].json.trains.length).to.equal(33);
-            Code.expect(results).to.be.an.array();
-            done();
-        });
-    });
-
-    lab.test('fetch utin', function (done) {
-
-        var options={
-            auth:auth,
-            path:process.env.FTP_PATH_UTIN,
-            limit:1,
-            filter:['utin_test_data.xml'],
-        };
-
-        Ftp.fetch(options, function(err, results){
-            if (err) {
-                return console.log(err);
-            }
-
-            Code.expect(results[0].json).to.equal(undefined);
-            Code.expect(results).to.be.an.array();
-            done();
-        });
-    });
-
-    lab.test('fetch utin with parse, skip and promise', function (done) {
-
-        var options={
-            auth:auth,
-            path:process.env.FTP_PATH_UTIN,
-            filter:['UtinTTResp20160420-001317-963', 'utin_test_data.xml'],
-            post_process:Parse.timetable,
-            skip: {
-                fun: (str, options)=> {
-
-                    if (str.indexOf('<MessageNumber>2392</MessageNumber>')!=-1) {
-                        debug('skipping', str.indexOf('<MessageNumber>2392</MessageNumber>'))
-                        return true
-                    }
-
-                    else return false
-
-                },
-                options:{}
-            }
-        };
-
-        Ftp.fetch(options).then((results)=>{
-
-            results.forEach((r)=>{
-                for (let key in r){
-                    debug(key)
-                }
-            })
-
-            // debug(JSON.stringify(results[0].json,null,4))
-            // debug(results[0].json)
-
-            Code.expect(results.length).to.equal(2);
-            Code.expect(results[0].json.trains.length).to.equal(767);
-            Code.expect(results[0].json.operational_to_business_id.length).to.equal(929);
-            Code.expect(results).to.be.an.array();
-            done();
-
-        }).catch((err)=>{
-            console.error(err);
+            Code.expect( err).to.equal( 'list_error' );
             done()
-        })
-    });
-});
+
+        } )
+    } );
+
+    lab.test( 'fetch ftp.get error', function ( done ) {
+        var options = {
+            auth: {'get_error':true},
+        };
+
+        Ftp.fetch( options ).catch( ( err )=> {
+
+            Code.expect( err.err).to.equal( 'get_error' );
+            done()
+
+        } )
+    } );
+
+    lab.test( 'fetch ftp.close error', function ( done ) {
+        var options = {
+            auth: {'close_error':true},
+        };
+
+        Ftp.fetch( options ).catch( ( err )=> {
+
+            Code.expect( err.err).to.equal( 'close_error' );
+            done()
+
+        } )
+    } );
+
+} );
