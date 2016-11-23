@@ -10,7 +10,7 @@ const debug = require( 'debug' )( 'ftpplus' );
 
 let _options; // handle for options
 
-function fetch( options, done ) {
+function fetch( options) {
 
     _options = options;
 
