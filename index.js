@@ -64,7 +64,7 @@ function ftpRead(files, encoding, credentials, resolve){
 
                     stream.on( 'close', function ( response ) {
                         c.end();
-                        console.log( 'close' )
+
                         data.push( {
                             text: string,
                             file: f
@@ -117,7 +117,7 @@ Adapter.prototype.list = function ( directory ) {
 
     let self=this;
 
-    debug('list ftp')
+    debug('list ftp');
 
     this._promise = new Promise( resolve=> {
 
@@ -137,6 +137,9 @@ Adapter.prototype.list = function ( directory ) {
 };
 
 Adapter.prototype.filter = function ( filter ) {
+
+
+    debug('filter');
 
     this._promise = this._promise.then( files=> {
 
@@ -177,19 +180,19 @@ Adapter.prototype.read = function ( encoding ) {
 
         return new Promise( resolve=> {
 
+
             if ( this.type=='disk'){
 
                 diskRead()
 
             }else if (this.type=='ftp'){
 
+                debug('read ftp');
                 ftpRead(files, encoding, this.credentials, resolve)
 
             }
 
         } ).then( data=> {
-
-            console.log('this ->data')
 
             data.forEach(d=>{
 
@@ -203,10 +206,6 @@ Adapter.prototype.read = function ( encoding ) {
 
     } );
 
-
-    console.log( 'closese!!!' )
-
-
     return this
 
 };
@@ -214,8 +213,6 @@ Adapter.prototype.read = function ( encoding ) {
 Adapter.prototype.parse = function ( parse ) {
 
     let data=this.data;
-
-    console.log(data)
 
     this._promise = this._promise.then( () => {
 
@@ -249,21 +246,21 @@ module.exports=(options)=>{
     return new Adapter(options)
 };
 
-// let ftp = new Adapter( {
-//     credentials: {
-//         host: process.env.HOST,
-//         user: process.env.USER,
-//         password: process.env.PASS,
-//     },
-//     type: 'ftp'
-// } )
-//
-// ftp.list( '/opt/rsync/tips/pers' )
-//     .filter( { type: 'include', files: ['Turer.csv'] } )
-//     .read( 'binary' )
-//     .parse(parse.crews)
-//     .then( data=>[
-//
-//         console.log( ftp.data[0].json[0] )
-//
-//     ] );
+let ftp = new Adapter( {
+    credentials: {
+        host: process.env.HOST,
+        user: process.env.USER,
+        password: process.env.PASS,
+    },
+    type: 'ftp'
+} )
+
+ftp.list( '/opt/rsync/tips/pers' )
+    .filter( { type: 'include', files: ['Turer.csv'] } )
+    .read( 'binary' )
+    .parse(parse.crews)
+    .then( data=>[
+
+        console.log( ftp.data[0].json[0] )
+
+    ] );
