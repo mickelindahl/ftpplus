@@ -81,6 +81,22 @@ function ftpRead(files, encoding, credentials, resolve){
                         resolveInner()
 
                     } );
+
+                    stream.on( 'error', function ( response ) {
+
+
+                        debug('ftpRead error')
+
+                        c.end();
+
+                        data.push( {
+                            text: string,
+                            file: f
+                        } );
+
+                        resolveInner()
+
+                    } );
                 } );
             } ).connect( credentials );
         } )
