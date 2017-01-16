@@ -265,7 +265,7 @@ Adapter.prototype.parse = function ( parse ) {
 module.exports=(options)=>{
     return new Adapter(options)
 };
-//
+
 // let ftp = new Adapter( {
 //     credentials: {
 //         host: process.env.HOST,
@@ -281,6 +281,6 @@ module.exports=(options)=>{
 //     .parse(parse.crews)
 //     .then( data=>[
 //
-//         console.log( ftp.data[0].json[0] )
+//         // console.log( ftp.data[0].json[0] )
 //
 //     ] );
