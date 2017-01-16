@@ -242,7 +242,7 @@ Adapter.prototype.parse = function ( parse ) {
 };
 
 
-exports.module=(options)=>{
+exports=(options)=>{
     return new Adapter(options)
 };
 
