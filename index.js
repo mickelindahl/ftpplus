@@ -117,6 +117,8 @@ Adapter.prototype.list = function ( directory ) {
 
     let self=this;
 
+    debug('list ftp')
+
     this._promise = new Promise( resolve=> {
 
         if ( self.type == 'disk' ) {
@@ -124,8 +126,6 @@ Adapter.prototype.list = function ( directory ) {
             diskList( directory, resolve )
 
         } else if ( self.type == 'ftp' ) {
-
-            debug('list ftp',  self.credentials)
 
             ftpList( directory, self.credentials, resolve )
 
