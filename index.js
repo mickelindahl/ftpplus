@@ -61,15 +61,13 @@ function ftpRead(files, encoding, credentials, resolve){
 
                     stream.on( 'data', function ( buffer ) {
 
-                        debug('ftpRead data')
-
                         string += buffer.toString( encoding );
                     } );
 
                     stream.on( 'close', function ( response ) {
 
 
-                        debug('ftpRead close')
+                        // debug('ftpRead close')
 
                         c.end();
 
@@ -83,9 +81,6 @@ function ftpRead(files, encoding, credentials, resolve){
                     } );
 
                     stream.on( 'error', function ( response ) {
-
-
-                        debug('ftpRead error')
 
                         c.end();
 
