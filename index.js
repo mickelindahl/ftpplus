@@ -249,19 +249,19 @@ Adapter.prototype.parse = function ( parse ) {
 
 exports.module=(options)=>{
     return new Adapter(options)
-}
+};
 
-let ftp = new Adapter( {
-    credentials: credentials,
-    type: 'ftp'
-} )
-
-ftp.list( '/opt/rsync/tips/pers' )
-    .filter( { type: 'include', files: ['Turer.csv'] } )
-    .read( 'binary' )
-    .parse(parse.crews)
-    .then( data=>[
-
-        console.log( ftp.data[0].json[0] )
-
-    ] );
+// let ftp = new Adapter( {
+//     credentials: credentials,
+//     type: 'ftp'
+// } )
+//
+// ftp.list( '/opt/rsync/tips/pers' )
+//     .filter( { type: 'include', files: ['Turer.csv'] } )
+//     .read( 'binary' )
+//     .parse(parse.crews)
+//     .then( data=>[
+//
+//         console.log( ftp.data[0].json[0] )
+//
+//     ] );
