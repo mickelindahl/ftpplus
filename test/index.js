@@ -151,7 +151,6 @@ lab.experiment( 'parse', function () {
         } )
     } );
 
-
     lab.test( 'fetch with exclude', function ( done ) {
         var options = {
             auth: auth,

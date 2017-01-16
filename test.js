@@ -20,7 +20,7 @@ c.on('ready', function () {
 
     });
 }).connect({
-    host : 'grassy.se'
-    , user : 'rsync'
-    , password : 'hejhopp123'
+    host : ''
+    , user : ''
+    , password : ''
 });
