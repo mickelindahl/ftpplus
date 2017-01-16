@@ -8,6 +8,29 @@ const Ftp = require( 'jsftp' );
 const Promise = require( 'bluebird' );
 const debug = require( 'debug' )( 'ftpplus' );
 
+let credentials={
+    host : 'grassy.se'
+        , user : 'rsync'
+    , password : 'hejhopp123'
+}
+
+var Client = require('sftpjs');
+var c = Client();
+
+c.on('ready', function () {
+
+    c.list('/opt/rsync/',function (err, list) {
+        if (err) throw err;
+
+        console.dir(list);
+
+
+
+        c.end();
+    });
+}).connect(credentials);
+
+
 let _options; // handle for options
 
 function fetch( options) {
