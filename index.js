@@ -242,9 +242,9 @@ Adapter.prototype.parse = function ( parse ) {
 };
 
 
-// module.exports=(options)=>{
-//     return new Adapter(options)
-// };
+module.exports=(options)=>{
+    return new Adapter(options)
+};
 //
 // let ftp = new Adapter( {
 //     credentials: {
