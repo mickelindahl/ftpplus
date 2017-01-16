@@ -249,21 +249,21 @@ module.exports=(options)=>{
     return new Adapter(options)
 };
 
-let ftp = new Adapter( {
-    credentials: {
-        host: process.env.HOST,
-        user: process.env.USER,
-        password: process.env.PASS,
-    },
-    type: 'ftp'
-} )
-
-ftp.list( '/opt/rsync/tips/pers' )
-    .filter( { type: 'include', files: ['Turer.csv'] } )
-    .read( 'binary' )
-    .parse(parse.crews)
-    .then( data=>[
-
-        console.log( ftp.data[0].json[0] )
-
-    ] );
+// let ftp = new Adapter( {
+//     credentials: {
+//         host: process.env.HOST,
+//         user: process.env.USER,
+//         password: process.env.PASS,
+//     },
+//     type: 'ftp'
+// } )
+//
+// ftp.list( '/opt/rsync/tips/pers' )
+//     .filter( { type: 'include', files: ['Turer.csv'] } )
+//     .read( 'binary' )
+//     .parse(parse.crews)
+//     .then( data=>[
+//
+//         console.log( ftp.data[0].json[0] )
+//
+//     ] );
