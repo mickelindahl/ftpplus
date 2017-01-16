@@ -8,8 +8,9 @@ var Client = require( 'sftpjs' );
 var c = Client();
 require( 'dotenv' ).load();
 const Promise = require( 'bluebird' );
-const Path = require( 'path' )
-const parse = require('parse')
+const Path = require( 'path' );
+const parse = require('parse');
+const debug = require('debug')('ftpplus:index.js') ;
 
 
 function diskList() {
