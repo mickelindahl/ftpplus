@@ -56,13 +56,21 @@ function ftpRead(files, encoding, credentials, resolve){
 
                 c.get( f.path, function ( err, stream ) {
                     if ( err ) throw err;
+
                     let string = '';
 
                     stream.on( 'data', function ( buffer ) {
+
+                        debug('ftpRead data')
+
                         string += buffer.toString( encoding );
                     } );
 
                     stream.on( 'close', function ( response ) {
+
+
+                        debug('ftpRead close')
+
                         c.end();
 
                         data.push( {
