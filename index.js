@@ -1,236 +1,267 @@
 /**
- * Created by s057wl on 2016-07-14.
+ * Created by Mikael Lindahl (mikael) on 1/15/17.
  */
 
 'use strict';
 
-const Ftp = require( 'jsftp' );
-const Promise = require( 'bluebird' );
-const debug = require( 'debug' )( 'ftpplus' );
-
-let credentials={
-    host : 'grassy.se'
-        , user : 'rsync'
-    , password : 'hejhopp123'
-}
-
-var Client = require('sftpjs');
+var Client = require( 'sftpjs' );
 var c = Client();
+require( 'dotenv' ).load();
+const Promise = require( 'bluebird' );
+const Path = require( 'path' )
+const parse = require('parse')
 
-c.on('ready', function () {
+let credentials = {
+    host: process.env.HOST
+    , user: process.env.USER
+    , password: process.env.PASS
+}
 
-    c.list('/opt/rsync/',function (err, list) {
-        if (err) throw err;
+function diskList() {
+}
 
-        console.dir(list);
-
-
-
-        c.end();
-    });
-}).connect(credentials);
-
-
-let _options; // handle for options
-
-function fetch( options) {
-
-    _options = options;
-
-    return new Promise( ( resolve, reject )=> {
-
-        try {
-
-            var ftp = new Ftp( _options.auth );
-            _options.ftp = ftp;
-
-            debug( 'ftp created' );
-
-            resolve()
-        } catch ( err ) {
-
-            reject( err )
-
-        }
-
-    } ).then( ()=> {
-
-        return new Promise( ( resolve, reject )=> {
-            _options.ftp.list( _options.path, function ( err, res ) {
-
-                if ( err ) return reject( err );
-
-                _options.files = toFiles( res );
-
-                debug( 'files parsed', _options.files )
-
-                resolve();
-
-            } );
-        } )
-    } ).then( ()=> {
-
-        return get_data()
-
-    } ).then( ( results )=> {
-
-         return results
-
-    } ).catch( ( err )=> {
-
-        throw err
-
-    } );
+function diskRead(){
 
 }
 
-function toFiles( ls ) {
+function ftpList( directory, credentials, resolve ) {
 
-    var files = [];
-    if ( ls == undefined ) {
-        return files
-    }
+    c.on( 'ready', function () {
+        c.list( directory, function ( err, list ) {
+            if ( err ) throw err;
 
-    var i = 0;
-    ls.split( '\r\n' ).forEach( function ( str ) {
-        var file = str.split( ' ' ).pop();
+            let files = [];
+            list.forEach( ( l )=> {
 
-        debug( 'filter:', _options.filter,'file:', file );
-
-        if ( _options.filter && _options.filter.indexOf( file ) == -1 ) {
-            return
-        }
-
-        if ( _options.exclude && _options.exclude.indexOf( file ) != -1 ) {
-            return
-        }
-
-        if ( file == '' ) {
-            return
-        }
-        if ( i >= _options.limit ) {
-            return
-        }
-        files.push( file );
-        i += 1;
-    } );
-
-    return files
-
-}
-
-function stream( file ) {
-
-    return new Promise( ( resolve, reject )=> {
-
-        var str = '';
-        // console.debug('path', path)
-        _options.ftp.get( _options.path + file, function ( err, socket ) {
-
-
-            if ( err ) {
-                return reject( {
-                    text: str,
-                    file: file,
-                    err: err,
-                } );
-            };
-
-            socket.on( "data", function ( buffer ) {
-
-                // binary encoding needed for loken
-                if ( _options.encoding != undefined ) {
-                    str += buffer.toString( _options.encoding );
-                } else {
-                    str += buffer.toString();
-                }
-
+                files.push( {
+                    path: directory + '/' + l.name,
+                    name: l.name,
+                    directory: directory,
+                } )
             } );
 
-            socket.on( "close", function ( err ) {
-                if ( err ) {
-                    return reject( {
-                        text: str,
-                        file: file,
-                        err: err,
+            c.end();
+            resolve( files )
+
+        } );
+    } ).connect( credentials );
+}
+
+function ftpRead(files, encoding, credentials, resolve){
+
+    let promise = Promise.resolve();
+    let data = [];
+
+    files.forEach( f=> {
+
+        promise = new Promise( resolveInner=> {
+            var c = Client();
+            c.on( 'ready', function () {
+
+                c.get( f.path, function ( err, stream ) {
+                    if ( err ) throw err;
+                    let string = '';
+
+                    stream.on( 'data', function ( buffer ) {
+                        string += buffer.toString( encoding );
                     } );
 
-                }
+                    stream.on( 'close', function ( response ) {
+                        c.end();
+                        console.log( 'close' )
+                        data.push( {
+                            text: string,
+                            file: f
+                        } );
 
-                if ( _options.bar != undefined && _options.files ) {
-                    _options.bar.setTotal( _options.files.length ).tick( 'Fetching: ' + file )
-                };
+                        resolveInner()
 
-                debug( 'close stream ' + file );
-
-                str = _options.skip && _options.skip.fun( str, _options.skip.options ) ? '' : str;
-
-                resolve( {
-                    text: str,
-                    file: file
+                    } );
                 } );
-            } );
-            socket.resume();
+            } ).connect( credentials );
         } )
-    } ).then( ( resolved )=> {
+    } );
 
-        if ( _options.to_json) {
 
-            debug('resolved.text', resolved.text)
-            // debug(options.post_process)
-            return _options.to_json( resolved.text ).then( ( json )=> {
+    promise.then( ()=> {
 
-                debug( 'parsing to json done' );
+        resolve( data )
 
-                resolved.json = json;
-                return resolved;
-            } )
+    } );
 
-        } else return resolved;
 
-    } ).catch( ( err )=> {
-
-        throw err
-
-    } )
 }
 
-function get_data() {
+class Adapter {
 
-    // start with current being an "empty" already-fulfilled promise
-    var current = Promise.resolve();
+    constructor( options ) {
 
-    return Promise.all( _options.files.map( ( file )=> {
-        current = current.then( function () {
+        // super(options, options);
 
-            debug( 'promise.all step' )
+        this.credentials = options.credentials;
+        this.data=[];
+        this.type = options.type;
+    }
+}
 
-            return stream( file )
-        } );
+Adapter.prototype.then = function ( resolve ) {
 
-        return current;
+    this._promise = this._promise.then( resolve );
+    return this
+};
 
-    } ) ).then( ( resolved )=> {
 
-        let results = {};
+Adapter.prototype.catch = function ( reject ) {
 
-        results.text = resolved.reduce( ( tot, e )=> {
-            return tot.concat( e.text )
-        }, [] );
+    this._promise = this._promise.catch( reject );
+    return this
 
-        if ( _options.to_json ) {
+};
 
-            results.json = resolved.reduce( ( tot, e )=> {
-                return tot.concat( e.json )
-            }, [] );
+
+Adapter.prototype.list = function ( directory ) {
+
+    this._promise = new Promise( resolve=> {
+
+        if ( this.type == 'disk' ) {
+
+            diskList( directory, resolve )
+
+        } else if ( this.type == 'ftp' ) {
+
+            ftpList( directory, this.credentials, resolve )
 
         }
 
-        return resolved;
+    } );
+
+    return this
+};
+
+Adapter.prototype.filter = function ( filter ) {
+
+    this._promise = this._promise.then( files=> {
+
+        let _files = [];
+
+        files.forEach( f=> {
+
+            if ( filter.type == 'include' ) {
+
+                if ( filter.files.indexOf( f.name ) == -1 ) {
+                    return
+                }
+
+                _files.push( f )
+
+            } else if ( filter.type == 'exclude' ) {
+
+                if ( filter.files.indexOf( f.name ) != -1 ) {
+                    return
+                }
+
+                _files.push( f )
+
+            }
+        } );
+
+        return _files;
 
     } );
+
+    return this
+};
+
+Adapter.prototype.read = function ( encoding ) {
+
+    let self=this;
+    this._promise = this._promise.then( files=> {
+
+        return new Promise( resolve=> {
+
+            if ( this.type=='disk'){
+
+                diskRead()
+
+            }else if (this.type=='ftp'){
+
+                ftpRead(files, encoding, this.credentials, resolve)
+
+            }
+
+        } ).then( data=> {
+
+            console.log('this ->data')
+
+            data.forEach(d=>{
+
+                self.data.push(d)
+
+            });
+
+            // self.data=data;
+
+        } );
+
+    } );
+
+
+    console.log( 'closese!!!' )
+
+
+    return this
+
+};
+
+Adapter.prototype.parse = function ( parse ) {
+
+    let data=this.data;
+
+    console.log(data)
+
+    this._promise = this._promise.then( () => {
+
+        console.log('parse');
+
+        let promise = Promise.resolve()
+
+        data.forEach( d=> {
+
+            promise=new Promise(resolve=> {
+
+                parse( d ).then(json=>{
+
+                    d.json=json;
+
+                    resolve()
+                })
+            });
+        } );
+
+        return promise
+
+    });
+
+    return this
+
+};
+
+
+exports.module=(options)=>{
+    return new Adapter(options)
 }
 
-module.exports = {
-    'fetch': fetch
-}
+let ftp = new Adapter( {
+    credentials: credentials,
+    type: 'ftp'
+} )
+
+ftp.list( '/opt/rsync/tips/pers' )
+    .filter( { type: 'include', files: ['Turer.csv'] } )
+    .read( 'binary' )
+    .parse(parse.crews)
+    .then( data=>[
+
+        console.log( ftp.data[0].json[0] )
+
+    ] );
