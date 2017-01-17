@@ -6,6 +6,8 @@
 const Mock = require( 'mock-require' );
 const EventEmitter = require( 'events' );
 
+//TODO: rewrite tests
+
 class MySocket extends EventEmitter {
 
     constructor(auth) {
