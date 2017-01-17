@@ -1,31 +1,14 @@
-Ftpplus
+Grassy text file import
 =======
 
-A small library that scans a directory and return the file content in an array
+A small library use to import text data (ascii) from disk or over ftp in a directory with filter functionality
 
 ## Installation
 
-  npm install git+ssh://git@github.com/mickelindahl/ftpplus.git
+  npm install git+ssh://git@github.com/mickelindahl/grassy_text_file_import.git
 
 ## Usage
 ```js
-
-    require('dotenv').config({path: root+'/testenv'});
-    var auth = {
-        host: process.env.FTP_HOST,
-        port: process.env.FTP_PORT,
-        user: process.env.FTP_USER,
-        pass: process.env.FTP_PASS
-    };
-    var options={
-        auth:auth,
-        path:process.env.FTP_PATH_LOKEN,
-        encoding:'binary',
-    }
-
-    Ftp.fetch(options, function(err, results){
-        // do stuff...
-    });
 ```
 
 ## Tests
