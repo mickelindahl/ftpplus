@@ -1,4 +1,4 @@
-Grassy text file import
+Text file import
 =======
 
 A small library use to import text data (ascii) from disk or over ftp in a directory with filter functionality
