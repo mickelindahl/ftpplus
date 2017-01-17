@@ -4,108 +4,11 @@
 
 'use strict';
 
-var Client = require( 'sftpjs' );
-var c = Client();
-require( 'dotenv' ).load();
+const Client = require( 'sftpjs' );
 const Promise = require( 'bluebird' );
-const Path = require( 'path' );
-const parse = require('parse');
-const debug = require('debug')('ftpplus:index.js') ;
-
-
-function diskList() {
-}
-
-function diskRead(){
-
-}
-
-function ftpList( directory, credentials, resolve ) {
-
-    c.on( 'ready', function () {
-        c.list( directory, function ( err, list ) {
-            if ( err ) throw err;
-
-            let files = [];
-            list.forEach( ( l )=> {
-
-                files.push( {
-                    path: directory + '/' + l.name,
-                    name: l.name,
-                    directory: directory,
-                } )
-            } );
-
-            c.end();
-            resolve( files )
-
-        } );
-    } ).connect( credentials );
-}
-
-function ftpRead(files, encoding, credentials, resolve){
-
-    let promise = Promise.resolve();
-    let data = [];
-
-    files.forEach( f=> {
-
-        promise = new Promise( resolveInner=> {
-            var c = Client();
-            c.on( 'ready', function () {
-
-                c.get( f.path, function ( err, stream ) {
-                    if ( err ) throw err;
-
-                    let string = '';
-
-                    stream.on( 'data', function ( buffer ) {
-
-                        string += buffer.toString( encoding );
-                    } );
-
-                    stream.on( 'close', function ( response ) {
-
-
-                        // debug('ftpRead close')
-
-                        c.end();
-
-                        data.push( {
-                            text: string,
-                            file: f.name
-                        } );
-
-                        resolveInner()
-
-                    } );
-
-                    stream.on( 'error', function ( response ) {
-
-                        c.end();
-
-                        data.push( {
-                            text: string,
-                            file: f.name
-                        } );
-
-                        resolveInner()
-
-                    } );
-                } );
-            } ).connect( credentials );
-        } )
-    } );
-
-
-    promise.then( ()=> {
-
-        resolve( data )
-
-    } );
-
-
-}
+const parse = require( 'parse' );
+const debug = require( 'debug' )( 'ftpplus:index.js' );
+const fs = require( 'fs' );
 
 class Adapter {
 
@@ -114,7 +17,7 @@ class Adapter {
         // super(options, options);
 
         this.credentials = options.credentials;
-        this.data=[];
+        this.data = [];
         this.type = options.type;
     }
 }
@@ -134,17 +37,20 @@ Adapter.prototype.catch = function ( reject ) {
 
 Adapter.prototype.list = function ( directory ) {
 
-    let self=this;
+    let self = this;
 
-    debug('list ftp');
 
     this._promise = new Promise( resolve=> {
 
         if ( self.type == 'disk' ) {
 
+            debug( 'disk ftp' );
+
             diskList( directory, resolve )
 
         } else if ( self.type == 'ftp' ) {
+
+            debug( 'list ftp' );
 
             ftpList( directory, self.credentials, resolve )
 
@@ -158,7 +64,7 @@ Adapter.prototype.list = function ( directory ) {
 Adapter.prototype.filter = function ( filter ) {
 
 
-    debug('filter');
+    debug( 'filter' );
 
     this._promise = this._promise.then( files=> {
 
@@ -194,30 +100,30 @@ Adapter.prototype.filter = function ( filter ) {
 
 Adapter.prototype.read = function ( encoding ) {
 
-    let self=this;
+    let self = this;
     this._promise = this._promise.then( files=> {
 
         return new Promise( resolve=> {
 
 
-            if ( this.type=='disk'){
+            if ( this.type == 'disk' ) {
 
                 diskRead()
 
-            }else if (this.type=='ftp'){
+            } else if ( this.type == 'ftp' ) {
 
-                debug('read ftp');
-                ftpRead(files, encoding, this.credentials, resolve)
+                debug( 'read ftp' );
+                ftpRead( files, encoding, this.credentials, resolve )
 
             }
 
         } ).then( data=> {
 
-            data.forEach(d=>{
+            data.forEach( d=> {
 
-                self.data.push(d)
+                self.data.push( d )
 
-            });
+            } );
 
             // self.data=data;
 
@@ -231,9 +137,9 @@ Adapter.prototype.read = function ( encoding ) {
 
 Adapter.prototype.parse = function ( parse ) {
 
-    let data=this.data;
+    let data = this.data;
 
-    debug('parse');
+    debug( 'parse' );
 
     this._promise = this._promise.then( () => {
 
@@ -242,28 +148,146 @@ Adapter.prototype.parse = function ( parse ) {
 
         data.forEach( d=> {
 
-            promise=new Promise(resolve=> {
+            promise = new Promise( resolve=> {
 
-                parse( d ).then(json=>{
+                parse( d ).then( json=> {
 
-                    d.json=json;
+                    d.json = json;
 
                     resolve()
-                })
-            });
+                } )
+            } );
         } );
 
         return promise
 
-    });
+    } );
 
     return this
 
 };
 
+function diskList( directory, resolve ) {
 
-module.exports=(options)=>{
-    return new Adapter(options)
+    let files = [];
+
+    let _files = fs.readdir( directory );
+
+
+    _files.forEach( file => {
+
+        files.push( {
+            path: directory + '/' + file,
+            name: file,
+            directory: directory,
+        } )
+
+    } );
+
+    resolve( files );
+
+}
+
+function diskRead( files, encoding, resolve ) {
+
+    let data = [];
+
+    files.forEach( f=> {
+
+        let text = fs.readFileSync( f, encoding );
+        data.push( { text: text } )
+
+    } );
+
+    resolve( data )
+}
+
+
+function ftpList( directory, credentials, resolve ) {
+
+    var c = Client();
+    c.on( 'ready', function () {
+        c.list( directory, function ( err, list ) {
+            if ( err ) throw err;
+
+            let files = [];
+            list.forEach( ( l )=> {
+
+                files.push( {
+                    path: directory + '/' + l.name,
+                    name: l.name,
+                    directory: directory,
+                } )
+            } );
+
+            c.end();
+            resolve( files )
+
+        } );
+    } ).connect( credentials );
+}
+
+function ftpRead( files, encoding, credentials, resolve ) {
+
+    let promise = Promise.resolve();
+    let data = [];
+
+    files.forEach( f=> {
+
+        promise = new Promise( resolveInner=> {
+            var c = Client();
+            c.on( 'ready', function () {
+
+                c.get( f.path, function ( err, stream ) {
+                    if ( err ) throw err;
+
+                    let string = '';
+
+                    stream.on( 'data', function ( buffer ) {
+
+                        string += buffer.toString( encoding );
+                    } );
+
+                    stream.on( 'close', function ( response ) {
+
+                        c.end();
+
+                        data.push( {
+                            text: string,
+                            file: f.name
+                        } );
+
+                        resolveInner()
+
+                    } );
+
+                    stream.on( 'error', function ( response ) {
+
+                        c.end();
+
+                        data.push( {
+                            text: string,
+                            file: f.name
+                        } );
+
+                        resolveInner()
+
+                    } );
+                } );
+            } ).connect( credentials );
+        } )
+    } );
+
+    promise.then( ()=> {
+
+        resolve( data )
+
+    } );
+}
+
+
+module.exports = ( options )=> {
+    return new Adapter( options )
 };
 
 // let ftp = new Adapter( {

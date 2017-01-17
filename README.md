@@ -9,6 +9,24 @@ A small library use to import text data (ascii) from disk or over ftp in a direc
 
 ## Usage
 ```js
+let ftp = new Adapter( {
+    credentials: {
+        host: process.env.HOST,
+        user: process.env.USER,
+        password: process.env.PASS,
+    },
+    type: 'ftp'
+} )
+
+ftp.list( 'a directory' )
+    .filter( { type: 'include', files: ['a file to include'] } )
+    .read( 'binary' )
+    .parse(parse.crews)
+    .then( data=>[
+
+           //do something with data    
+        
+    ] );
 ```
 
 ## Tests

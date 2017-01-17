@@ -58,7 +58,7 @@ function ftp( auth ) {
     }
 }
 
-Mock( 'jsftp', ftp );
+Mock( 'sftpjs', ftp );
 
 const Code = require( 'code' );   // assertion library
 const Lab = require( 'lab' );
