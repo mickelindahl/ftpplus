@@ -110,16 +110,19 @@ Adapter.prototype.read = function ( encoding ) {
 
         return new Promise( resolve=> {
 
-
-            if ( this.type == 'disk' ) {
+            if ( self.type == 'disk' ) {
 
                 debug('read disk');
                 diskRead()
 
-            } else if ( this.type == 'ftp' ) {
+            } else if ( self.type == 'ftp' ) {
 
                 debug( 'read ftp' );
-                ftpRead( files, encoding, this.credentials, resolve )
+                ftpRead( files, encoding, self.credentials, resolve )
+
+            }else{
+
+                console.error('Unsupported type', self.type)
 
             }
 
