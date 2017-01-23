@@ -91,6 +91,12 @@ Adapter.prototype.filter = function ( filter ) {
             }
         } );
 
+        if (_files.length==0){
+
+            console.log('Warning no files to load', _files)
+
+        }
+
         return _files;
 
     } );
