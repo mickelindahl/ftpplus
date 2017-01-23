@@ -63,10 +63,9 @@ Adapter.prototype.list = function ( directory ) {
 
 Adapter.prototype.filter = function ( filter ) {
 
-
-    debug( 'filter' );
-
     this._promise = this._promise.then( files=> {
+
+        debug( 'filter' );
 
         let _files = [];
 
@@ -146,10 +145,9 @@ Adapter.prototype.parse = function ( parse ) {
 
     let data = this.data;
 
-    debug( 'parse' );
-
     this._promise = this._promise.then( () => {
 
+        debug( 'parse' );
 
         let promise = Promise.resolve()
 
