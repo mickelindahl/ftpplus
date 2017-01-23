@@ -39,7 +39,6 @@ Adapter.prototype.list = function ( directory ) {
 
     let self = this;
 
-
     this._promise = new Promise( resolve=> {
 
         if ( self.type == 'disk' ) {
@@ -53,6 +52,10 @@ Adapter.prototype.list = function ( directory ) {
             debug( 'list ftp' );
 
             ftpList( directory, self.credentials, resolve )
+
+        }else{
+
+            console.error('Unsupported type', self.type)
 
         }
 
