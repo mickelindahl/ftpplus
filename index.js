@@ -7,7 +7,7 @@
 const Client = require( 'sftpjs' );
 const Promise = require( 'bluebird' );
 const parse = require( 'parse' );
-const debug = require( 'debug' )( 'ftpplus:index.js' );
+const debug = require( 'debug' )( 'text_file_import:index.js' );
 const fs = require( 'fs' );
 
 class Adapter {
@@ -44,7 +44,7 @@ Adapter.prototype.list = function ( directory ) {
 
         if ( self.type == 'disk' ) {
 
-            debug( 'disk ftp' );
+            debug( 'list disk' );
 
             diskList( directory, resolve )
 
@@ -108,6 +108,7 @@ Adapter.prototype.read = function ( encoding ) {
 
             if ( this.type == 'disk' ) {
 
+                debug('read disk');
                 diskRead()
 
             } else if ( this.type == 'ftp' ) {
