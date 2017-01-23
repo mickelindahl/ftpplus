@@ -116,7 +116,7 @@ Adapter.prototype.read = function ( encoding ) {
             if ( self.type == 'disk' ) {
 
                 debug('read disk');
-                diskRead()
+                diskRead( files, encoding, resolve)
 
             } else if ( self.type == 'ftp' ) {
 
@@ -202,6 +202,8 @@ function diskList( directory, resolve ) {
 }
 
 function diskRead( files, encoding, resolve ) {
+
+    debug('diskRead')
 
     let data = [];
 
