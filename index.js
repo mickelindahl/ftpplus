@@ -68,7 +68,7 @@ Adapter.prototype.filter = function ( filter ) {
 
     this._promise = this._promise.then( files=> {
 
-        debug( 'filter' );
+        debug( 'filter' , filter,files);
 
         let _files = [];
 
