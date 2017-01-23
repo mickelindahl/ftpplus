@@ -210,7 +210,10 @@ function diskRead( files, encoding, resolve ) {
     files.forEach( f=> {
 
         let text = fs.readFileSync( f.path, encoding );
-        data.push( { text: text } )
+        data.push( {
+            text: text,
+            file: f.name
+        } )
 
     } );
 
