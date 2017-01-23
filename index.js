@@ -182,7 +182,7 @@ function diskList( directory, resolve ) {
 
     let files = [];
 
-    let _files = fs.readdirsync(directory );
+    let _files = fs.readdirSync(directory );
 
 
     debug('diskList',directory, _files)
