@@ -185,6 +185,8 @@ function diskList( directory, resolve ) {
     let _files = fs.readdir( directory );
 
 
+    debug('diskList',directory, _files)
+
     _files.forEach( file => {
 
         files.push( {
