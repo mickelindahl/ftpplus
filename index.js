@@ -209,7 +209,7 @@ function diskRead( files, encoding, resolve ) {
 
     files.forEach( f=> {
 
-        let text = fs.readFileSync( f, encoding );
+        let text = fs.readFileSync( f.path, encoding );
         data.push( { text: text } )
 
     } );
