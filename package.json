@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "lab",
-    "test-cov-html": "./node_modules/.bin/lab -m 30000 -l -r html -o coverage.html  test/index.js"
+    "test-cov-html": "./node_modules/.bin/lab -m 30000 -l -r html -o coverage.html  test/index.js",
+    "jsdoc-to-markdown":"jsdoc2md --template README.hbs --files index.js > README.md"
   },
   "repository": {
     "type": "git",

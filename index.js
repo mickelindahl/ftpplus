@@ -19,6 +19,8 @@ class Adapter {
         this.credentials = options.credentials;
         this.data = [];
         this.type = options.type;
+
+        debug(this.credentials)
     }
 }
 
@@ -182,6 +184,8 @@ Adapter.prototype.parse = function ( parse ) {
 
 };
 
+
+
 function diskList( directory, resolve ) {
 
     let files = [];
@@ -205,6 +209,7 @@ function diskList( directory, resolve ) {
 
 }
 
+
 function diskRead( files, encoding, resolve ) {
 
     debug('diskRead')
@@ -224,7 +229,18 @@ function diskRead( files, encoding, resolve ) {
     resolve( data )
 }
 
-
+/**
+ *  List files in directory over ftp
+ *
+ * - `directory` Directory to list files in
+ * - `credentials` ftp credentials
+ *   - `host` host address
+ *   - `port` host port to connect to
+ *   - `user` user to login with
+ *   - `password` password to login with
+ * - `resolve` promise resolve handler
+ *   @returns {promise} list with files in directory
+ */
 function ftpList( directory, credentials, resolve ) {
 
     var c = Client();
@@ -249,6 +265,19 @@ function ftpList( directory, credentials, resolve ) {
     } ).connect( credentials );
 }
 
+/**
+ *  Read files over ftp
+ *
+ * - `files` List with files paths to read
+ * - `encoding` Type of encoding to read files with
+ * - `credentials` ftp credentials
+ *   - `host` host address
+ *   - `port` host port to connect to
+ *   - `user` user to login with
+ *   - `password` password to login with
+ * - `resolve` promise resolve handler
+ *   @returns {promise} list with data from each file
+ */
 function ftpRead( files, encoding, credentials, resolve ) {
 
     let promise = Promise.resolve();
@@ -268,6 +297,7 @@ function ftpRead( files, encoding, credentials, resolve ) {
                     stream.on( 'data', function ( buffer ) {
 
                         string += buffer.toString( encoding );
+
                     } );
 
                     stream.on( 'close', function ( response ) {
@@ -306,7 +336,6 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
     } );
 }
-
 
 module.exports = ( options )=> {
     return new Adapter( options )

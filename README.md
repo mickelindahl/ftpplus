@@ -29,6 +29,42 @@ ftp.list( 'a directory' )
     ] );
 ```
 
+## API
+
+## Functions
+
+<dl>
+<dt><a href="#ftpList">ftpList()</a> ⇒ <code>promise</code></dt>
+<dd><p>List files in directory over ftp</p>
+<ul>
+<li><code>directory</code> Directory to list files in</li>
+<li><code>credentials</code> ftp credentials<ul>
+<li><code>host</code> host address</li>
+<li><code>port</code> host port to connect to</li>
+<li><code>user</code> user to login with</li>
+<li><code>password</code> password to login with</li>
+</ul>
+</li>
+<li><code>resolve</code> promise resolve handler</li>
+</ul>
+</dd>
+<dt><a href="#ftpRead">ftpRead()</a> ⇒ <code>promise</code></dt>
+<dd><p>Read files over ftp</p>
+<ul>
+<li><code>files</code> List with files paths to read</li>
+<li><code>encoding</code> Type of encoding to read files with</li>
+<li><code>credentials</code> ftp credentials<ul>
+<li><code>host</code> host address</li>
+<li><code>port</code> host port to connect to</li>
+<li><code>user</code> user to login with</li>
+<li><code>password</code> password to login with</li>
+</ul>
+</li>
+<li><code>resolve</code> promise resolve handler</li>
+</ul>
+</dd>
+</dl>
+
 ## Tests
 
   Lab.cmd
