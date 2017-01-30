@@ -286,59 +286,61 @@ function ftpRead( files, encoding, credentials, resolve ) {
     let counter={open:0, closed:0};
     files.forEach( f=> {
 
-        promise = new Promise( resolveInner=> {
-            var c = Client();
-            c.on( 'ready', function () {
+        promise = promise.then(()=>{
+            return new Promise( resolveInner=> {
+                var c = Client();
+                c.on( 'ready', function () {
 
-                debug('c.on ready', f.path);
-                counter.open++;
-                c.get( f.path, function ( err, stream ) {
-                    if ( err ) throw err;
+                    debug('c.on ready', f.path);
+                    counter.open++;
+                    c.get( f.path, function ( err, stream ) {
+                        if ( err ) throw err;
 
-                    debug('c.get');
+                        debug('c.get');
 
-                    let string = '';
+                        let string = '';
 
-                    stream.on( 'data', function ( buffer ) {
+                        stream.on( 'data', function ( buffer ) {
 
-                        debug('c.on data');
-                        string += buffer.toString( encoding );
+                            debug('c.on data');
+                            string += buffer.toString( encoding );
 
-                    } );
-
-                    stream.on( 'close', function ( response ) {
-                        counter.closed++;
-                        debug('c.on close', counter);
-
-                        c.end();
-
-                        data.push( {
-                            text: string,
-                            file: f.name
                         } );
 
-                        resolveInner()
+                        stream.on( 'close', function ( response ) {
+                            counter.closed++;
+                            debug('c.on close', counter);
 
-                    } );
+                            c.end();
 
-                    stream.on( 'error', function ( response ) {
+                            data.push( {
+                                text: string,
+                                file: f.name
+                            } );
 
+                            resolveInner()
 
-                        debug('cc.on error');
-
-                        c.end();
-
-                        data.push( {
-                            text: string,
-                            file: f.name
                         } );
 
-                        resolveInner()
+                        stream.on( 'error', function ( response ) {
 
+
+                            debug('cc.on error');
+
+                            c.end();
+
+                            data.push( {
+                                text: string,
+                                file: f.name
+                            } );
+
+                            resolveInner()
+
+                        } );
                     } );
-                } );
-            } ).connect( credentials );
-        } )
+                } ).connect( credentials );
+            } )
+        })
 
     } );
 
