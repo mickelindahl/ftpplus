@@ -339,10 +339,12 @@ function ftpRead( files, encoding, credentials, resolve ) {
                 } );
             } ).connect( credentials );
         } )
+
     } );
 
     promise.then( ()=> {
 
+        debug('ftpRead done')
         resolve( data )
 
     } );
