@@ -282,78 +282,87 @@ function ftpRead( files, encoding, credentials, resolve ) {
     let data = [];
     let counter = { open: 0, closed: 0 };
 
-    var c = Client();
+    let p= new Promise(resolveClient=>{
+        let c = Client();
 
-    c.on( 'ready', function () {
+        debug('before c.on ready')
+        c.on( 'ready', function () {
 
-        let promise = Promise.resolve();
+            let promise = Promise.resolve();
 
-        debug( 'c.on ready');
-        files.forEach( f=> {
+            debug( 'c.on ready');
+            files.forEach( f=> {
 
-            promise = promise.then( ()=> {
-                return new Promise( resolveInner=> {
+                promise = promise.then( ()=> {
+                    return new Promise( resolveInner=> {
 
-                    c.get( f.path, function ( err, stream ) {
-                        if ( err ) throw err;
+                        c.get( f.path, function ( err, stream ) {
+                            if ( err ) throw err;
 
-                        counter.open++;
-                        debug( 'c.get',  f.path );
+                            counter.open++;
+                            debug( 'c.get',  f.path );
 
-                        let string = '';
+                            let string = '';
 
-                        stream.on( 'data', function ( buffer ) {
+                            stream.on( 'data', function ( buffer ) {
 
-                            debug( 'c.on data' );
-                            string += buffer.toString( encoding );
+                                debug( 'c.on data' );
+                                string += buffer.toString( encoding );
 
-                        } );
-
-                        stream.on( 'close', function ( response ) {
-                            counter.closed++;
-                            debug( 'c.on close', counter );
-
-                            // c.end();
-
-                            data.push( {
-                                text: string,
-                                file: f.name
                             } );
 
-                            resolveInner()
+                            stream.on( 'close', function ( response ) {
+                                counter.closed++;
+                                debug( 'c.on close', counter );
 
-                        } );
+                                // c.end();
 
-                        stream.on( 'error', function ( response ) {
+                                data.push( {
+                                    text: string,
+                                    file: f.name
+                                } );
 
+                                resolveInner()
 
-                            debug( 'cc.on error' );
-
-                            // c.end();
-
-                            data.push( {
-                                text: string,
-                                file: f.name
                             } );
 
-                            resolveInner()
+                            stream.on( 'error', function ( response ) {
 
+
+                                debug( 'cc.on error' );
+
+                                // c.end();
+
+                                data.push( {
+                                    text: string,
+                                    file: f.name
+                                } );
+
+                                resolveInner()
+
+                            } );
                         } );
-                    } );
-                } ).connect( credentials );
+                    } ).connect( credentials );
 
-            } )
+                } )
 
-        } );
+            } );
 
-        promise.then( ()=> {
+            promise.then( ()=> {
 
-            c.end();
+                c.end();
 
-            debug( 'ftpRead done' )
-            resolve( data )
+                debug( 'ftpRead done' )
+                resolveClient( data )
 
-        } );
+            } );
+    }).then((data)=>{
+
+            resolve(data)
+
+        })
+
+
     } )
 }
 
