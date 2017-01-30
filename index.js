@@ -244,8 +244,13 @@ function ftpList( directory, credentials, resolve ) {
 
     var c = Client();
     c.on( 'ready', function () {
+
+        debug('ftpList', directory)
+
         c.list( directory, function ( err, list ) {
             if ( err ) throw err;
+
+            debug('ftpList', list)
 
             let files = [];
             list.forEach( ( l )=> {
@@ -279,93 +284,84 @@ function ftpList( directory, credentials, resolve ) {
  */
 function ftpRead( files, encoding, credentials, resolve ) {
 
+
     let data = [];
+
     let counter = { open: 0, closed: 0 };
 
-    let p= new Promise(resolveClient=>{
-        let c = Client();
+    var c = Client();
+    c.on( 'ready', function () {
 
-        debug('before c.on ready')
-        c.on( 'ready', function () {
+        let promise = Promise.resolve();
 
-            let promise = Promise.resolve();
+        files.forEach( f=> {
 
-            debug( 'c.on ready');
-            files.forEach( f=> {
+            promise = promise.then( ()=> {
+                return new Promise( resolveInner=> {
 
-                promise = promise.then( ()=> {
-                    return new Promise( resolveInner=> {
+                    debug( 'c.on ready', f.path );
 
-                        c.get( f.path, function ( err, stream ) {
-                            if ( err ) throw err;
+                    c.get( f.path, function ( err, stream ) {
+                        if ( err ) throw err;
 
-                            counter.open++;
-                            debug( 'c.get',  f.path );
+                        counter.open++;
+                        debug( 'c.get' );
 
-                            let string = '';
+                        let string = '';
 
-                            stream.on( 'data', function ( buffer ) {
+                        stream.on( 'data', function ( buffer ) {
 
-                                debug( 'c.on data' );
-                                string += buffer.toString( encoding );
+                            // debug( 'c.on data' );
+                            string += buffer.toString( encoding );
 
-                            } );
-
-                            stream.on( 'close', function ( response ) {
-                                counter.closed++;
-                                debug( 'c.on close', counter );
-
-                                // c.end();
-
-                                data.push( {
-                                    text: string,
-                                    file: f.name
-                                } );
-
-                                resolveInner()
-
-                            } );
-
-                            stream.on( 'error', function ( response ) {
-
-
-                                debug( 'cc.on error' );
-
-                                // c.end();
-
-                                data.push( {
-                                    text: string,
-                                    file: f.name
-                                } );
-
-                                resolveInner()
-
-                            } );
                         } );
-                    } ).connect( credentials );
 
+                        stream.on( 'close', function ( response ) {
+                            counter.closed++;
+                            debug( 'c.on close', counter );
+
+                            // c.end();
+
+                            data.push( {
+                                text: string,
+                                file: f.name
+                            } );
+
+                            resolveInner()
+
+                        } );
+
+                        stream.on( 'error', function ( response ) {
+
+
+                            debug( 'cc.on error' );
+
+                            // c.end();
+
+                            data.push( {
+                                text: string,
+                                file: f.name
+                            } );
+
+                            resolveInner()
+
+                        } );
+                    } );
                 } )
+            } )
 
-            } );
+        } );
 
-            promise.then( ()=> {
+        promise.then( ()=> {
 
-                c.end();
+            c.end()
 
-                debug( 'ftpRead done' )
-                resolveClient( )
+            debug( 'ftpRead done' )
+            resolve( data )
 
-            } );
-    })
+        } );
 
-
-    } ).then(()=>{
-
-
-        debug( 'client closed resolve data' )
-        resolve(data)
-
-    })
+    } ).connect( credentials );
 }
 
 module.exports = ( options )=> {
