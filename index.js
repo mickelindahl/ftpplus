@@ -292,10 +292,11 @@ function ftpRead( files, encoding, credentials, resolve ) {
             promise = promise.then( ()=> {
                 return new Promise( resolveInner=> {
 
-                    counter.open++;
+
                     c.get( f.path, function ( err, stream ) {
                         if ( err ) throw err;
 
+                        counter.open++;
                         debug( 'c.get',  f.path );
 
                         let string = '';
