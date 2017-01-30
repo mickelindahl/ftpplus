@@ -279,19 +279,20 @@ function ftpList( directory, credentials, resolve ) {
  */
 function ftpRead( files, encoding, credentials, resolve ) {
 
-    let promise = Promise.resolve();
     let data = [];
-
     let counter = { open: 0, closed: 0 };
+
     var c = Client();
+
     c.on( 'ready', function () {
+
+        let promise = Promise.resolve();
 
         debug( 'c.on ready');
         files.forEach( f=> {
 
             promise = promise.then( ()=> {
                 return new Promise( resolveInner=> {
-
 
                     c.get( f.path, function ( err, stream ) {
                         if ( err ) throw err;
