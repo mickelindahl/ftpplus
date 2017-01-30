@@ -193,7 +193,7 @@ function diskList( directory, resolve ) {
     let _files = fs.readdirSync(directory );
 
 
-    debug('diskList',directory, _files)
+    debug('diskList', directory, _files)
 
     _files.forEach( file => {
 
@@ -289,18 +289,25 @@ function ftpRead( files, encoding, credentials, resolve ) {
             var c = Client();
             c.on( 'ready', function () {
 
+                debug('c.on ready', f.path);
+
                 c.get( f.path, function ( err, stream ) {
                     if ( err ) throw err;
+
+                    debug('c.get');
 
                     let string = '';
 
                     stream.on( 'data', function ( buffer ) {
 
+                        debug('c.on data');
                         string += buffer.toString( encoding );
 
                     } );
 
                     stream.on( 'close', function ( response ) {
+
+                        debug('c.on close');
 
                         c.end();
 
@@ -314,6 +321,9 @@ function ftpRead( files, encoding, credentials, resolve ) {
                     } );
 
                     stream.on( 'error', function ( response ) {
+
+
+                        debug('cc.on error');
 
                         c.end();
 
