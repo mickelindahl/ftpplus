@@ -353,17 +353,19 @@ function ftpRead( files, encoding, credentials, resolve ) {
                 c.end();
 
                 debug( 'ftpRead done' )
-                resolveClient( data )
+                resolveClient( )
 
             } );
-    }).then((data)=>{
-
-            resolve(data)
-
-        })
+    })
 
 
-    } )
+    } ).then(()=>{
+
+
+        debug( 'client closed resolve data' )
+        resolve(data)
+
+    })
 }
 
 module.exports = ( options )=> {
