@@ -283,6 +283,7 @@ function ftpRead( files, encoding, credentials, resolve ) {
     let promise = Promise.resolve();
     let data = [];
 
+    let counter={open:0, closed:0};
     files.forEach( f=> {
 
         promise = new Promise( resolveInner=> {
@@ -290,7 +291,7 @@ function ftpRead( files, encoding, credentials, resolve ) {
             c.on( 'ready', function () {
 
                 debug('c.on ready', f.path);
-
+                counter.open++;
                 c.get( f.path, function ( err, stream ) {
                     if ( err ) throw err;
 
@@ -306,8 +307,8 @@ function ftpRead( files, encoding, credentials, resolve ) {
                     } );
 
                     stream.on( 'close', function ( response ) {
-
-                        debug('c.on close');
+                        counter.closed++;
+                        debug('c.on close', counter);
 
                         c.end();
 
