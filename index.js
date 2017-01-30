@@ -20,7 +20,7 @@ class Adapter {
         this.data = [];
         this.type = options.type;
 
-        debug(this.credentials)
+        debug( this.credentials )
     }
 }
 
@@ -55,9 +55,9 @@ Adapter.prototype.list = function ( directory ) {
 
             ftpList( directory, self.credentials, resolve )
 
-        }else{
+        } else {
 
-            console.error('Unsupported type', self.type)
+            console.error( 'Unsupported type', self.type )
 
         }
 
@@ -70,11 +70,11 @@ Adapter.prototype.filter = function ( filter ) {
 
     this._promise = this._promise.then( files=> {
 
-        if (!filter){
+        if ( !filter ) {
             return files
         }
 
-        debug( 'filter' , filter,files);
+        debug( 'filter', filter, files );
 
         let _files = [];
 
@@ -99,9 +99,9 @@ Adapter.prototype.filter = function ( filter ) {
             }
         } );
 
-        if (_files.length==0){
+        if ( _files.length == 0 ) {
 
-            console.log('Warning no files to load', _files)
+            console.log( 'Warning no files to load', _files )
 
         }
 
@@ -121,17 +121,17 @@ Adapter.prototype.read = function ( encoding ) {
 
             if ( self.type == 'disk' ) {
 
-                debug('read disk');
-                diskRead( files, encoding, resolve)
+                debug( 'read disk' );
+                diskRead( files, encoding, resolve )
 
             } else if ( self.type == 'ftp' ) {
 
                 debug( 'read ftp' );
                 ftpRead( files, encoding, self.credentials, resolve )
 
-            }else{
+            } else {
 
-                console.error('Unsupported type', self.type)
+                console.error( 'Unsupported type', self.type )
 
             }
 
@@ -185,15 +185,14 @@ Adapter.prototype.parse = function ( parse ) {
 };
 
 
-
 function diskList( directory, resolve ) {
 
     let files = [];
 
-    let _files = fs.readdirSync(directory );
+    let _files = fs.readdirSync( directory );
 
 
-    debug('diskList', directory, _files)
+    debug( 'diskList', directory, _files )
 
     _files.forEach( file => {
 
@@ -212,7 +211,7 @@ function diskList( directory, resolve ) {
 
 function diskRead( files, encoding, resolve ) {
 
-    debug('diskRead')
+    debug( 'diskRead' )
 
     let data = [];
 
@@ -283,35 +282,36 @@ function ftpRead( files, encoding, credentials, resolve ) {
     let promise = Promise.resolve();
     let data = [];
 
-    let counter={open:0, closed:0};
-    files.forEach( f=> {
+    let counter = { open: 0, closed: 0 };
+    var c = Client();
+    c.on( 'ready', function () {
 
-        promise = promise.then(()=>{
-            return new Promise( resolveInner=> {
-                var c = Client();
-                c.on( 'ready', function () {
+        debug( 'c.on ready');
+        files.forEach( f=> {
 
-                    debug('c.on ready', f.path);
+            promise = promise.then( ()=> {
+                return new Promise( resolveInner=> {
+
                     counter.open++;
                     c.get( f.path, function ( err, stream ) {
                         if ( err ) throw err;
 
-                        debug('c.get');
+                        debug( 'c.get',  f.path );
 
                         let string = '';
 
                         stream.on( 'data', function ( buffer ) {
 
-                            debug('c.on data');
+                            debug( 'c.on data' );
                             string += buffer.toString( encoding );
 
                         } );
 
                         stream.on( 'close', function ( response ) {
                             counter.closed++;
-                            debug('c.on close', counter);
+                            debug( 'c.on close', counter );
 
-                            c.end();
+                            // c.end();
 
                             data.push( {
                                 text: string,
@@ -325,9 +325,9 @@ function ftpRead( files, encoding, credentials, resolve ) {
                         stream.on( 'error', function ( response ) {
 
 
-                            debug('cc.on error');
+                            debug( 'cc.on error' );
 
-                            c.end();
+                            // c.end();
 
                             data.push( {
                                 text: string,
@@ -339,17 +339,20 @@ function ftpRead( files, encoding, credentials, resolve ) {
                         } );
                     } );
                 } ).connect( credentials );
+
             } )
-        })
 
-    } );
+        } );
 
-    promise.then( ()=> {
+        promise.then( ()=> {
 
-        debug('ftpRead done')
-        resolve( data )
+            c.end();
 
-    } );
+            debug( 'ftpRead done' )
+            resolve( data )
+
+        } );
+    } )
 }
 
 module.exports = ( options )=> {
