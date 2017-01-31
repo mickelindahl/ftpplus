@@ -310,12 +310,24 @@ function ftpRead( files, encoding, credentials, resolve ) {
                     debug( 'c.on ready', f.path );
 
                     c.get( f.path, function ( err, stream ) {
-                        if ( err ) throw err;
+
+                        let string = '';
 
                         counter.open++;
                         debug( 'c.get' );
 
-                        let string = '';
+                        if ( err ){
+
+                            console.error('WARNING: ', err)
+
+                            data.push( {
+                                text: string,
+                                file: f.name
+                            } );
+
+                            resolveInner()
+
+                        }
 
                         stream.on( 'data', function ( buffer ) {
 
