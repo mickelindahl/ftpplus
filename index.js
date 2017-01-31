@@ -318,7 +318,7 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
                         if ( err ){
 
-                            console.error('WARNING: ', err)
+                            console.error('text-file-import ftpRead WARNING: ', err);
 
                             data.push( {
                                 text: string,
