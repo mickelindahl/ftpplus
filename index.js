@@ -18,6 +18,7 @@ class Adapter {
 
         this.credentials = options.credentials;
         this.data = [];
+        this.files;
         this.type = options.type;
 
         debug( this.credentials )
