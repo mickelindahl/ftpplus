@@ -199,8 +199,7 @@ function diskList( directory, resolve ) {
 
     let _files = fs.readdirSync( directory );
 
-
-    debug( 'diskList', directory, _files )
+    debug( 'diskList dir', directory, 'no files', _files.length, 'first file:',_files[0] )
 
     _files.forEach( file => {
 
