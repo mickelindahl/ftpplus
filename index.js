@@ -107,7 +107,7 @@ Adapter.prototype.filter = function ( filter ) {
 
             } else if (filter.type == 'last_modified') {
 
-                if ( filter.callback(f.last_modified)) {
+                if ( !filter.callback(f.last_modified)) {
                     return
                 }
 
