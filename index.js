@@ -9,6 +9,7 @@ const Promise = require( 'bluebird' );
 const parse = require( 'parse' );
 const debug = require( 'debug' )( 'text_file_import:index.js' );
 const fs = require( 'fs' );
+const moment=require('moment');
 
 class Adapter {
 
@@ -99,6 +100,14 @@ Adapter.prototype.filter = function ( filter ) {
             } else if ( filter.type == 'exclude' ) {
 
                 if ( filter.files.indexOf( f.name ) != -1 ) {
+                    return
+                }
+
+                _files.push( f )
+
+            } else if (filter.type == 'last_modified') {
+
+                if ( filter.callback(f.last_modified)) {
                     return
                 }
 
@@ -195,11 +204,13 @@ Adapter.prototype.parse = function ( parse ) {
 
 function diskList( directory, resolve ) {
 
+    debug( 'diskList' );
+
     let files = [];
 
     let _files = fs.readdirSync( directory );
 
-    debug( 'diskList dir', directory, 'no files', _files.length, 'first file:',_files[0] )
+    debug( 'diskList dir', directory, 'no files', _files.length, 'first file:',_files[0] );
 
     _files.forEach( file => {
 
@@ -207,6 +218,8 @@ function diskList( directory, resolve ) {
             path: directory + '/' + file,
             name: file,
             directory: directory,
+            last_modified: moment(fs.lstatSync(directory + '/' + file).mtime).format('YYYY-MM-DD HH:mm')
+
         } )
 
     } );
@@ -218,7 +231,7 @@ function diskList( directory, resolve ) {
 
 function diskRead( files, encoding, resolve ) {
 
-    debug( 'diskRead' )
+    debug( 'diskRead' );
 
     let data = [];
 
@@ -257,8 +270,6 @@ function ftpList( directory, credentials, resolve ) {
         c.list( directory, function ( err, list ) {
             if ( err ) throw err;
 
-            debug('ftpList', list)
-
             let files = [];
             list.forEach( ( l )=> {
 
@@ -266,6 +277,7 @@ function ftpList( directory, credentials, resolve ) {
                     path: directory + '/' + l.name,
                     name: l.name,
                     directory: directory,
+                    last_modified: moment(l.date).format('YYYY-MM-DD HH:mm')
                 } )
             } );
 

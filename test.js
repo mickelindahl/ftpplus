@@ -21,12 +21,14 @@ let ftp=IO({
         password: process.env.PASS,
         port:22
     },
-    type: 'ftp',
+    type: 'disk',
+    // type: 'ftp',
 })
 
 ftp
-    .list( '/opt/rsync/tips/trru' )
-    .read( )
+    .list( 'c:/Users/s057wl/git/text_file_import/test' )
+    // .list( '/opt/rsync/tips/trru' )
+    // .read( )
     .then( data=>[
 
         console.log( ftp.data )
