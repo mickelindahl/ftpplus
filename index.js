@@ -156,22 +156,9 @@ Adapter.prototype.read = function ( encoding ) {
 
             data.forEach( d=> {
 
-
-                if ( self.parse_options ) {
-
-                    for ( let key in self.parse_options ){
-
-                            d[key]=self.parse_options[key]
-
-                        }
-                }
-
                 self.data.push( d )
 
             } );
-
-
-            // self.data=data;
 
         } );
 
