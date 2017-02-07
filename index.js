@@ -182,6 +182,8 @@ Adapter.prototype.parse = function ( parse ) {
 
             promise = new Promise( resolve=> {
 
+                debug('parse', parse)
+
                 parse( d ).then( json=> {
 
                     d.json = json;
