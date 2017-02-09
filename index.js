@@ -83,7 +83,7 @@ Adapter.prototype.filter = function ( filter ) {
             return files
         }
 
-        debug( 'filter', filter, files, typeof filter );
+        debug( 'filter');
 
         let _files = [];
 
@@ -96,8 +96,6 @@ Adapter.prototype.filter = function ( filter ) {
             dic[val.type]=val;
             return dic
         }, {})
-
-        debug('filter', filter_dic)
 
         if (filter_dic.include && filter_dic.exclude){
 
