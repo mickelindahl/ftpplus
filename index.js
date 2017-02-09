@@ -83,42 +83,59 @@ Adapter.prototype.filter = function ( filter ) {
             return files
         }
 
-        debug( 'filter', filter, files );
+        debug( 'filter', filter, files, typeof filter );
 
         let _files = [];
 
+        if (!Array.isArray(filter)) {
+            filter = [filter];
+        }
+
+        let filter_dic=filter.reduce((dic, val)=>{
+
+            dic[val.type]=val;
+            return dic
+        }, {})
+
+        debug('filter', filter_dic)
+
+        if (filter_dic.include && filter_dic.exclude){
+
+            console.error('WARNING a filter can not have bot include and exclude types. ' +
+                'The exclude will be ignored', filter)
+
+        }
+
         files.forEach( f=> {
 
-            if ( filter.type == 'include' ) {
+            debug('filter', f.name, filter_dic)
 
-                if ( filter.files.indexOf( f.name ) == -1 ) {
-                    return
-                }
+            if ( filter_dic.include
+                && filter_dic.include.files.indexOf( f.name ) == -1 ) {
 
-                _files.push( f )
+                return
 
-            } else if ( filter.type == 'exclude' ) {
+            } else if ( filter_dic.exclude
+                && filter_dic.exclude.files.indexOf( f.name ) != -1 ) {
 
-                if ( filter.files.indexOf( f.name ) != -1 ) {
-                    return
-                }
-
-                _files.push( f )
-
-            } else if (filter.type == 'last_modified') {
-
-                if ( !filter.callback(f.last_modified)) {
-                    return
-                }
-
-                _files.push( f )
+                return
 
             }
+
+            if (filter_dic.last_modified
+                && !filter_dic.last_modified.callback(f.last_modified)) {
+
+                return
+
+            }
+
+            _files.push( f )
+
         } );
 
         if ( _files.length == 0 ) {
 
-            console.log( 'Warning no files to load', _files )
+            console.log( 'WARNING no files to load', _files )
 
         }
 

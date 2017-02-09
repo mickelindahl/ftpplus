@@ -84,7 +84,7 @@ var auth = {
     pass: 'secret'
 };
 
-lab.experiment( 'parse', function () {
+lab.experiment( 'text file import', function () {
 
     lab.before( {}, function ( done ) {
         done();
