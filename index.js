@@ -106,8 +106,6 @@ Adapter.prototype.filter = function ( filter ) {
 
         files.forEach( f=> {
 
-            debug('filter', f.name, filter_dic)
-
             if ( filter_dic.include
                 && filter_dic.include.files.indexOf( f.name ) == -1 ) {
 
@@ -196,8 +194,6 @@ Adapter.prototype.parse = function ( parse ) {
         data.forEach( d=> {
 
             promise = new Promise( resolve=> {
-
-                debug('parse', parse)
 
                 parse( d ).then( json=> {
 
