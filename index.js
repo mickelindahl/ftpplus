@@ -92,6 +92,10 @@ Adapter.prototype.filter = function ( filter ) {
             filter = [filter];
         }
 
+
+        debug('filter_dic.last_modified', filter)
+
+
         let filter_dic=filter.reduce((dic, val)=>{
 
             dic[val.type]=val;
