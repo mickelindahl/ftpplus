@@ -77,6 +77,7 @@ Adapter.prototype.list = function ( directory ) {
 
 Adapter.prototype.filter = function ( filter ) {
 
+
     this._promise = this._promise.then( files=> {
 
         if ( !filter ) {
@@ -103,6 +104,8 @@ Adapter.prototype.filter = function ( filter ) {
                 'The exclude will be ignored', filter)
 
         }
+
+        debug('filter_dic.last_modified', filter_dic.last_modified)
 
         files.forEach( f=> {
 
