@@ -11,6 +11,19 @@ const debug = require( 'debug' )( 'text_file_import:index.js' );
 const fs = require( 'fs' );
 const moment=require('moment');
 
+/**
+ * Class used to import files from disk or over ftp
+ *
+ * - `options` object with the following keys
+ *   - `credentials` sftp credential object with the following keys
+ *     - `host` stirng THe sftp host url
+ *     - `port`number sftp port to use
+ *     - `user string User name for sftp
+ *     - `password`string Password for sftp user
+ *   - `type` string source type to import from disk|ftp
+ *
+ *
+ */
 class Adapter {
 
     constructor( options ) {
@@ -75,8 +88,21 @@ Adapter.prototype.list = function ( directory ) {
     return this
 };
 
+/**
+ * Apply filter to filters in directory. Date filter effects the `this.files` attribute
+ * whereas the onFileName filter does not.
+ *
+ *  - `filter` Function function({file object}) which should return a object
+ *  with the keys `include` true|false and `exists` true|false. `include`  tells weather the
+ *  file should be filtered out and `exists` tells weather it the file should be included in the
+ *  `this.files` array.
+ *
+ * @memberof Adapter
+ * @returns {Adapter}
+ */
 Adapter.prototype.filter = function ( filter ) {
 
+    let self=this;
 
     this._promise = this._promise.then( files=> {
 
@@ -86,63 +112,37 @@ Adapter.prototype.filter = function ( filter ) {
 
         debug( 'filter');
 
-        let _files = [];
+        let _files_filter = [];
+        let _files_all = [];
 
-        if (!Array.isArray(filter)) {
-            filter = [filter];
-        }
+        debug('filter_dic.last_modified', filter);
 
-
-        debug('filter_dic.last_modified', filter)
-
-
-        let filter_dic=filter.reduce((dic, val)=>{
-
-            dic[val.type]=val;
-            return dic
-        }, {})
-
-        if (filter_dic.include && filter_dic.exclude){
-
-            console.error('WARNING a filter can not have bot include and exclude types. ' +
-                'The exclude will be ignored', filter)
-
-        }
-
-        debug('filter_dic.last_modified', filter_dic.last_modified)
-
+        let result;
         files.forEach( f=> {
 
-            if ( filter_dic.include
-                && filter_dic.include.files.indexOf( f.name ) == -1 ) {
+            result=filter(f)
 
-                return
-
-            } else if ( filter_dic.exclude
-                && filter_dic.exclude.files.indexOf( f.name ) != -1 ) {
-
-                return
-
+            if (result.include){
+                _files_filter.push(f)
             }
 
-            if (filter_dic.last_modified
-                && !filter_dic.last_modified.callback(f.last_modified)) {
+            if (result.exists){
 
-                return
-
+                _files_all.push(f)
             }
-
-            _files.push( f )
 
         } );
 
-        if ( _files.length == 0 ) {
 
-            console.log( 'WARNING no files to load', _files )
+        if ( _files_filter.length == 0 ) {
+
+            console.log( 'WARNING no files to load', _files_filter )
 
         }
 
-        return _files;
+        self.files=_files_all;
+
+        return _files_filter;
 
     } );
 

@@ -31,40 +31,32 @@ ftp.list( 'a directory' )
 
 ## API
 
-## Functions
+<a name="Adapter"></a>
 
-<dl>
-<dt><a href="#ftpList">ftpList()</a> ⇒ <code>promise</code></dt>
-<dd><p>List files in directory over ftp</p>
-<ul>
-<li><code>directory</code> Directory to list files in</li>
-<li><code>credentials</code> ftp credentials<ul>
-<li><code>host</code> host address</li>
-<li><code>port</code> host port to connect to</li>
-<li><code>user</code> user to login with</li>
-<li><code>password</code> password to login with</li>
-</ul>
-</li>
-<li><code>resolve</code> promise resolve handler</li>
-</ul>
-</dd>
-<dt><a href="#ftpRead">ftpRead()</a> ⇒ <code>promise</code></dt>
-<dd><p>Read files over ftp</p>
-<ul>
-<li><code>files</code> List with files paths to read</li>
-<li><code>encoding</code> Type of encoding to read files with</li>
-<li><code>credentials</code> ftp credentials<ul>
-<li><code>host</code> host address</li>
-<li><code>port</code> host port to connect to</li>
-<li><code>user</code> user to login with</li>
-<li><code>password</code> password to login with</li>
-</ul>
-</li>
-<li><code>resolve</code> promise resolve handler</li>
-</ul>
-</dd>
-</dl>
+## Adapter
+Class used to import files from disk or over ftp- `options` object with the following keys  - `credentials` sftp credential object with the following keys    - `host` stirng THe sftp host url    - `port`number sftp port to use    - `user string User name for sftp    - `password`string Password for sftp user  - `type` string source type to import from disk|ftp
 
+**Kind**: global class  
+<a name="Adapter+filter"></a>
+
+### adapter.filter() ⇒ <code>[Adapter](#Adapter)</code>
+Apply filter to filters in directory. Date filter effects the `this.files` attributewhereas the onFileName filter does not. - `filter` Function function({file object}) which should return a object with the keys `include` true|false and `exists` true|false. `include`  tells weather the file should be filtered out and `exists` tells weather it the file should be included in the `this.files` array.
+
+**Kind**: instance method of <code>[Adapter](#Adapter)</code>  
+<a name="ftpList"></a>
+
+## ftpList() ⇒ <code>promise</code>
+List files in directory over ftp- `directory` Directory to list files in- `credentials` ftp credentials  - `host` host address  - `port` host port to connect to  - `user` user to login with  - `password` password to login with- `resolve` promise resolve handler
+
+**Kind**: global function  
+**Returns**: <code>promise</code> - list with files in directory  
+<a name="ftpRead"></a>
+
+## ftpRead() ⇒ <code>promise</code>
+Read files over ftp- `files` List with files paths to read- `encoding` Type of encoding to read files with- `credentials` ftp credentials  - `host` host address  - `port` host port to connect to  - `user` user to login with  - `password` password to login with- `resolve` promise resolve handler
+
+**Kind**: global function  
+**Returns**: <code>promise</code> - list with data from each file  
 ## Tests
 
   Lab.cmd
