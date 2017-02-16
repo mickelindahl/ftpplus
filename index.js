@@ -11,6 +11,7 @@ const debug = require( 'debug' )( 'text_file_import:index.js' );
 const fs = require( 'fs' );
 const moment=require('moment');
 
+
 /**
  * Class used to import files from disk or over ftp
  *
@@ -20,6 +21,10 @@ const moment=require('moment');
  *     - `port`number sftp port to use
  *     - `user string User name for sftp
  *     - `password`string Password for sftp user
+ *   - `files_visible` Files in the directory that are visible.
+ *   Visibility can be controlled by the filter. Files that are included in the
+ *   filter are always visible
+ *   - `files_filtered` Filtered set of files
  *   - `type` string source type to import from disk|ftp
  *
  *
@@ -32,19 +37,42 @@ class Adapter {
 
         this.credentials = options.credentials;
         this.data = [];
-        this.files;
+        this.files_visible=[];
+        this.files_filtered=[]
         this.type = options.type;
+
+        if (['ftp', 'disk'].indexOf(this.type) ==-1){
+
+            this._promise=Promise.reject( 'Unsupported type import source type ' + this.type )
+
+        }
 
         debug( this.credentials )
     }
 }
 
+/**
+ *  Replicates promise then behavior for class
+ *
+ *  - `resolve` A value to resolve
+ *
+ * @memberof Adapter
+ * @returns {Adapter}
+ */
 Adapter.prototype.then = function ( resolve ) {
 
     this._promise = this._promise.then( resolve );
     return this
 };
 
+/**
+ *  Replicates promise catch behavior for class
+ *
+ *  - `resolve` A value to resolve
+ *
+ * @memberof Adapter
+ * @returns {Adaptere}
+ */
 Adapter.prototype.catch = function ( reject ) {
 
     this._promise = this._promise.catch( reject );
@@ -52,11 +80,19 @@ Adapter.prototype.catch = function ( reject ) {
 
 };
 
+/**
+ * List the content in a directory
+ *
+ * - `directory` string name of directory to import text files from
+ *
+ * @memberOf Adapter
+ * @returns {Adapter}
+ */
 Adapter.prototype.list = function ( directory ) {
 
     let self = this;
 
-    this._promise = new Promise( resolve=> {
+    this._promise = new Promise( (resolve, reject)=> {
 
         if ( self.type == 'disk' ) {
 
@@ -64,15 +100,11 @@ Adapter.prototype.list = function ( directory ) {
 
             diskList( directory, resolve )
 
-        } else if ( self.type == 'ftp' ) {
+        } else { //ftp
 
             debug( 'list ftp' );
 
-            ftpList( directory, self.credentials, resolve )
-
-        } else {
-
-            console.error( 'Unsupported type', self.type )
+            ftpList( directory, self.credentials, resolve, reject )
 
         }
 
@@ -93,9 +125,9 @@ Adapter.prototype.list = function ( directory ) {
  * whereas the onFileName filter does not.
  *
  *  - `filter` Function function({file object}) which should return a object
- *  with the keys `include` true|false and `exists` true|false. `include`  tells weather the
- *  file should be filtered out and `exists` tells weather it the file should be included in the
- *  `this.files` array.
+ *  with the keys `include` true|false and `visible` true|false. `include`  tells weather the
+ *  file should be filtered out and `visible` tells weather it the file should be included in the
+ *  `this.files_visible` array.
  *
  * @memberof Adapter
  * @returns {Adapter}
@@ -107,13 +139,18 @@ Adapter.prototype.filter = function ( filter ) {
     this._promise = this._promise.then( files=> {
 
         if ( !filter ) {
+
+            self.files_filtered = files;
+            self.files_visible = files;
+
             return files
         }
 
         debug( 'filter');
 
-        let _files_filter = [];
-        let _files_all = [];
+        //clear
+        self.files_filtered = [];
+        self.files_visible = [];
 
         debug('filter_dic.last_modified', filter);
 
@@ -123,32 +160,40 @@ Adapter.prototype.filter = function ( filter ) {
             result=filter(f)
 
             if (result.include){
-                _files_filter.push(f)
-            }
 
-            if (result.exists){
+                self.files_filtered.push(f)
+                self.files_visible.push(f)
 
-                _files_all.push(f)
+            }else if (result.visible){
+
+                self.files_visible.push(f)
             }
 
         } );
 
 
-        if ( _files_filter.length == 0 ) {
+        if ( self.files_filtered.length == 0 ) {
 
-            console.log( 'WARNING no files to load', _files_filter )
+            console.log( 'WARNING no files to load', self.files_filtered )
 
         }
 
-        self.files=_files_all;
 
-        return _files_filter;
+        return self.files_filtered;
 
     } );
 
     return this
 };
 
+/**
+ * Reads file content from the disk
+ *
+ * - `encoding` encoding to use when reading the file e.g. binary or utf8
+ *
+ * @memberOf Adapter
+ * @returns {Adapter}
+ */
 Adapter.prototype.read = function ( encoding ) {
 
     let self = this;
@@ -161,14 +206,10 @@ Adapter.prototype.read = function ( encoding ) {
                 debug( 'read disk' );
                 diskRead( files, encoding, resolve )
 
-            } else if ( self.type == 'ftp' ) {
+            } else { //ftp
 
                 debug( 'read ftp' );
                 ftpRead( files, encoding, self.credentials, resolve )
-
-            } else {
-
-                console.error( 'Unsupported type', self.type )
 
             }
 
@@ -180,6 +221,8 @@ Adapter.prototype.read = function ( encoding ) {
 
             } );
 
+            return data
+
         } );
 
     } );
@@ -188,6 +231,16 @@ Adapter.prototype.read = function ( encoding ) {
 
 };
 
+/**
+ * Parse the into into json (could be any structure actually)
+ *
+ * `parse` function function([object]) where object has the keys
+ * `text` and `file`. Text is the raw file content and file is the
+ * filename. It returns a promise wHich resolves into the parsed data
+ *
+ * @memberOf Adapter
+ * @returns {Adapter}
+ */
 Adapter.prototype.parse = function ( parse ) {
 
     let data = this.data;
@@ -206,7 +259,7 @@ Adapter.prototype.parse = function ( parse ) {
 
                     d.json = json;
 
-                    resolve()
+                    resolve(json)
                 } )
             } );
         } );
@@ -278,7 +331,7 @@ function diskRead( files, encoding, resolve ) {
  * - `resolve` promise resolve handler
  *   @returns {promise} list with files in directory
  */
-function ftpList( directory, credentials, resolve ) {
+function ftpList( directory, credentials, resolve, reject ) {
 
     var c = Client();
     c.on( 'ready', function () {
@@ -286,7 +339,11 @@ function ftpList( directory, credentials, resolve ) {
         debug('ftpList', directory)
 
         c.list( directory, function ( err, list ) {
-            if ( err ) throw err;
+            if ( err ){
+                c.end()
+                return reject( err );
+
+            }
 
             let files = [];
             list.forEach( ( l )=> {
@@ -354,7 +411,7 @@ function ftpRead( files, encoding, credentials, resolve ) {
                                 file: f.name
                             } );
 
-                            resolveInner()
+                            return resolveInner()
 
                         }
 
