@@ -1,5 +1,8 @@
-Text file import
-=======
+[![Build Status](https://travis-ci.org/mickelindahl/text_file_import.svg?branch=master)](https://travis-ci.org/mickelindahl/text_file_import)
+[![Coverage Status](https://coveralls.io/repos/github/mickelindahl/text_file_import/badge.svg?branch=master)](https://coveralls.io/github/mickelindahl/text_file_import?branch=master)
+
+# Text file import
+
 
 A small library use to import text data (ascii) from disk or over ftp in a directory with filter functionality
 

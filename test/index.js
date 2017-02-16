@@ -161,7 +161,7 @@ lab.experiment( 'text file import', function () {
 
                 return [
                     { path: './wrong.txt' },
-                    { path: '/readme.txt' }
+                    { path: './readme.txt' }
                 ]
             } )
             .read()
