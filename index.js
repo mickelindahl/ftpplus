@@ -437,21 +437,6 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
                         } );
 
-                        stream.on( 'error', function ( response ) {
-
-
-                            debug( 'cc.on error' );
-
-                            // c.end();
-
-                            data.push( {
-                                text: string,
-                                file: f.name
-                            } );
-
-                            resolveInner()
-
-                        } );
                     } );
                 } )
             } )

@@ -4,7 +4,8 @@
   "description": "Extends jsftp used fetch multiple file content from a remote directory",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/lab -m 30000 -l  test/index.js",
+    "test": "node_modules/.bin/lab -r lcov test/index.js | ./node_modules/.bin/coveralls",
+    "test-local": "./node_modules/.bin/lab -m 30000 -l  test/index.js",
     "test-cov-html": "./node_modules/.bin/lab -m 30000 -l -r html -o coverage.html  test/index.js",
     "jsdoc-to-markdown": "jsdoc2md --template README.hbs --files index.js > README.md"
   },
@@ -31,9 +32,7 @@
   },
   "devDependencies": {
     "code": "^4.0.0",
-    "lab": "^11.2.1",
-    "mock-require": "^2.0.0",
-    "parse": "git+ssh://git@github.com/mickelindahl/parse.git",
-    "xml2js": "^0.4.17"
+    "coveralls": "^2.11.16",
+    "lab": "^11.2.1"
   }
 }
