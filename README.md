@@ -19,7 +19,13 @@ let ftp = new Adapter( {
 } )
 
 ftp.list( 'a directory' )
-    .filter( { type: 'include', files: ['a file to include'] } )
+    .filter(
+            let include = ['list_files.txt'].indexOf( f.name ) != -1;
+            let lm = f.last_modified > moment( '2017-02-02' ).format( 'YYYY-MM-DD HH:mm' );
+
+            return {
+                include: include * lm,
+                exits: true})
     .read( 'binary' )
     .parse(parse.crews)
     .then( data=>[
