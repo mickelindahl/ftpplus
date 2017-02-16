@@ -6,7 +6,6 @@
 
 const Client = require( 'sftpjs' );
 const Promise = require( 'bluebird' );
-const parse = require( 'parse' );
 const debug = require( 'debug' )( 'text_file_import:index.js' );
 const fs = require( 'fs' );
 const moment=require('moment');
