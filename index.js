@@ -71,7 +71,7 @@ Adapter.prototype.then = function ( resolve ) {
  *  - `resolve` A value to resolve
  *
  * @memberof Adapter
- * @returns {Adaptere}
+ * @returns {Adapter}
  */
 Adapter.prototype.catch = function ( reject ) {
 
