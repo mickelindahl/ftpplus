@@ -177,6 +177,41 @@ lab.experiment( 'text file import', function () {
 
     } );
 
+
+    lab.test( 'list sftp no existant direcotry', function ( done ) {
+        var options = {
+
+            type: 'ftp',
+            credentials: {
+
+                host: 'test.rebex.net',
+                port: 22,
+                user: 'demo',
+                password: 'password'
+            }
+        }
+
+        let io = IO( options )
+            .then( err => {
+
+                debug( err )
+
+                return [
+                    { path: './wroooong.txt' },
+                ]
+            } )
+            .read()
+            .then( res => {
+
+                Code.expect( io.data.length ).to.equal( 1 );
+                Code.expect( io.data[0].text ).to.equal( '' );
+
+                done()
+
+            } )
+
+    } );
+
     lab.test( 'unsupported type and trow error', function ( done ) {
         var options = {
 

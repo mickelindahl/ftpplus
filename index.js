@@ -39,6 +39,7 @@ class Adapter {
         this.files_visible=[];
         this.files_filtered=[]
         this.type = options.type;
+        this._promise=Promise.resolve();
 
         if (['ftp', 'disk'].indexOf(this.type) ==-1){
 
