@@ -163,11 +163,15 @@ Adapter.prototype.filter = function ( filter ) {
 
             if (result.include){
 
+                debug('include')
+
                 self.files_filtered.push(f)
                 self.files_visible.push(f)
 
             }else if (result.visible){
 
+
+                debug('visible')
                 self.files_visible.push(f)
             }
 
