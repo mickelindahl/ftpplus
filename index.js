@@ -159,6 +159,8 @@ Adapter.prototype.filter = function ( filter ) {
 
             result=filter(f)
 
+            debug('result result',result)
+
             if (result.include){
 
                 self.files_filtered.push(f)
