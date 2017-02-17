@@ -181,6 +181,9 @@ Adapter.prototype.filter = function ( filter ) {
 
         self.files_visible = self.files_visible.sort((a,b)=>{
 
+            a=a.name
+            b=b.name
+
             if (a>b){
                 return 1
             } else if (a<b){
@@ -194,6 +197,9 @@ Adapter.prototype.filter = function ( filter ) {
 
         self.files_filtered = self.files_filtered.sort((a,b)=>{
 
+            a=a.name
+            b=b.name
+
             if (a>b){
                 return 1
             } else if (a<b){
@@ -204,8 +210,8 @@ Adapter.prototype.filter = function ( filter ) {
 
         });
 
-        debug('self.files_visible', self.files_visible )
-        debug('self.files_filtered', self.files_filtered )
+        debug('self.files_visible', self.files_visible.map(f=>{return f.name}) )
+        debug('self.files_filtered', self.files_filtered.map(f=>{return f.name}) )
         debug('self.files_visible length', self.files_visible.length )
         debug('self.files_filtered length', self.files_filtered.lengt )
 
