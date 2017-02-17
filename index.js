@@ -213,7 +213,7 @@ Adapter.prototype.filter = function ( filter ) {
         debug('self.files_visible', self.files_visible.map(f=>{return f.name}) )
         debug('self.files_filtered', self.files_filtered.map(f=>{return f.name}) )
         debug('self.files_visible length', self.files_visible.length )
-        debug('self.files_filtered length', self.files_filtered.lengt )
+        debug('self.files_filtered length', self.files_filtered.length )
 
         return self.files_filtered;
 
