@@ -247,7 +247,7 @@ Adapter.prototype.parse = function ( parse ) {
 
     this._promise = this._promise.then( () => {
 
-        debug( 'parse' );
+        debug( 'parse', parse );
 
         let promise = Promise.resolve()
 
