@@ -152,7 +152,7 @@ Adapter.prototype.filter = function ( filter ) {
         self.files_filtered = [];
         self.files_visible = [];
 
-        debug('filter_dic.last_modified', filter);
+        debug('filter', filter);
 
         let result;
         files.forEach( f=> {
@@ -178,6 +178,36 @@ Adapter.prototype.filter = function ( filter ) {
 
         }
 
+
+        self.files_visible = self.files_visible.sort((a,b)=>{
+
+            if (a>b){
+                return 1
+            } else if (a<b){
+                return -1
+            }else{
+                return 0
+            }
+
+        });
+
+
+        self.files_filterd = self.files_filterd.sort((a,b)=>{
+
+            if (a>b){
+                return 1
+            } else if (a<b){
+                return -1
+            }else{
+                return 0
+            }
+
+        });
+
+        debug('self.files_visible', self.files_visible )
+        debug('self.files_filtered', self.files_filtered )
+        debug('self.files_visible length', self.files_visible.length )
+        debug('self.files_filtered length', self.files_filtered.lengt )
 
         return self.files_filtered;
 
