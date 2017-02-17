@@ -161,7 +161,7 @@ Adapter.prototype.filter = function ( filter ) {
 
             debug('result result',result)
 
-            if (result.include){
+            if (result.include && result.visible){
 
                 debug('include')
 
