@@ -192,7 +192,7 @@ Adapter.prototype.filter = function ( filter ) {
         });
 
 
-        self.files_filterd = self.files_filterd.sort((a,b)=>{
+        self.files_filtered = self.files_filtered.sort((a,b)=>{
 
             if (a>b){
                 return 1
