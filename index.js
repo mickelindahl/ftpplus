@@ -421,19 +421,18 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
         let promise = Promise.resolve();
 
+        debug('ftpRead ', files.length, 'files')
+
         files.forEach( f=> {
 
             promise = promise.then( ()=> {
                 return new Promise( resolveInner=> {
-
-                    debug( 'c.on ready', f.path );
 
                     c.get( f.path, function ( err, stream ) {
 
                         let string = '';
 
                         counter.open++;
-                        debug( 'c.get' );
 
                         if ( err ){
 
@@ -457,7 +456,6 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
                         stream.on( 'close', function ( response ) {
                             counter.closed++;
-                            debug( 'c.on close', counter );
 
                             // c.end();
 
