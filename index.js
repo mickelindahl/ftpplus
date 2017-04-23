@@ -146,24 +146,19 @@ Adapter.prototype.filter = function ( filter ) {
             return files
         }
 
-        debug( 'filter');
+        debug('filter length', filter.length);
 
         //clear
         self.files_filtered = [];
         self.files_visible = [];
 
-        debug('filter', filter);
 
         let result;
         files.forEach( f=> {
 
             result=filter(f)
 
-            debug('result result',result)
-
             if (result.include && result.visible){
-
-                debug('include')
 
                 self.files_filtered.push(f)
                 self.files_visible.push(f)
@@ -171,7 +166,6 @@ Adapter.prototype.filter = function ( filter ) {
             }else if (result.visible){
 
 
-                debug('visible')
                 self.files_visible.push(f)
             }
 
@@ -203,8 +197,8 @@ Adapter.prototype.filter = function ( filter ) {
 
         self.files_filtered = self.files_filtered.sort((a,b)=>{
 
-            a=a.name
-            b=b.name
+            a=a.name;
+            b=b.name;
 
             if (a>b){
                 return 1
@@ -215,11 +209,6 @@ Adapter.prototype.filter = function ( filter ) {
             }
 
         });
-
-        debug('self.files_visible', self.files_visible.map(f=>{return f.name}) )
-        debug('self.files_filtered', self.files_filtered.map(f=>{return f.name}) )
-        debug('self.files_visible length', self.files_visible.length )
-        debug('self.files_filtered length', self.files_filtered.length )
 
         return self.files_filtered;
 
@@ -262,6 +251,8 @@ Adapter.prototype.read = function ( encoding ) {
                 self.data.push( d )
 
             } );
+
+            debug('read done')
 
             return data
 
