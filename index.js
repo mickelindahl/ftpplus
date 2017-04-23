@@ -47,7 +47,6 @@ class Adapter {
 
         }
 
-        debug( this.credentials )
     }
 }
 
@@ -280,7 +279,7 @@ Adapter.prototype.parse = function ( parse ) {
 
     this._promise = this._promise.then( () => {
 
-        debug( 'parse', parse );
+        debug( 'parse');
 
         let promise = Promise.resolve()
 
