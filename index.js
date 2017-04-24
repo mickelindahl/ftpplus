@@ -47,7 +47,6 @@ class Adapter {
 
         }
 
-        debug( this.credentials )
     }
 }
 
@@ -111,7 +110,7 @@ Adapter.prototype.list = function ( directory ) {
     } ).then((files)=>{
 
         // Handle to all files in the directory
-        // self.files=files;
+        self.files=files;
 
         return files
 
@@ -146,25 +145,25 @@ Adapter.prototype.filter = function ( filter ) {
             return files
         }
 
-        debug( 'filter');
+        debug('filter length', filter.length);
 
         //clear
         self.files_filtered = [];
         self.files_visible = [];
 
-        debug('filter_dic.last_modified', filter);
 
         let result;
         files.forEach( f=> {
 
             result=filter(f)
 
-            if (result.include){
+            if (result.include && result.visible){
 
                 self.files_filtered.push(f)
                 self.files_visible.push(f)
 
             }else if (result.visible){
+
 
                 self.files_visible.push(f)
             }
@@ -178,6 +177,37 @@ Adapter.prototype.filter = function ( filter ) {
 
         }
 
+
+        self.files_visible = self.files_visible.sort((a,b)=>{
+
+            a=a.name
+            b=b.name
+
+            if (a>b){
+                return 1
+            } else if (a<b){
+                return -1
+            }else{
+                return 0
+            }
+
+        });
+
+
+        self.files_filtered = self.files_filtered.sort((a,b)=>{
+
+            a=a.name;
+            b=b.name;
+
+            if (a>b){
+                return 1
+            } else if (a<b){
+                return -1
+            }else{
+                return 0
+            }
+
+        });
 
         return self.files_filtered;
 
@@ -220,6 +250,8 @@ Adapter.prototype.read = function ( encoding ) {
                 self.data.push( d )
 
             } );
+
+            debug('read done')
 
             return data
 
@@ -388,19 +420,18 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
         let promise = Promise.resolve();
 
+        debug('ftpRead ', files.length, 'files')
+
         files.forEach( f=> {
 
             promise = promise.then( ()=> {
                 return new Promise( resolveInner=> {
-
-                    debug( 'c.on ready', f.path );
 
                     c.get( f.path, function ( err, stream ) {
 
                         let string = '';
 
                         counter.open++;
-                        debug( 'c.get' );
 
                         if ( err ){
 
@@ -424,7 +455,6 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
                         stream.on( 'close', function ( response ) {
                             counter.closed++;
-                            debug( 'c.on close', counter );
 
                             // c.end();
 
