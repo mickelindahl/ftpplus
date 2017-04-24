@@ -111,7 +111,7 @@ Adapter.prototype.list = function ( directory ) {
     } ).then((files)=>{
 
         // Handle to all files in the directory
-        self.files=files;
+        // self.files=files;
 
         return files
 
@@ -247,7 +247,7 @@ Adapter.prototype.parse = function ( parse ) {
 
     this._promise = this._promise.then( () => {
 
-        debug( 'parse' );
+        debug( 'parse', parse );
 
         let promise = Promise.resolve()
 
