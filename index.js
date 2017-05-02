@@ -287,7 +287,7 @@ Adapter.prototype.parse = function ( parse ) {
 
             promise = promise.then(()=>{
                 let _d=d;
-                parse( _d ).then( json=> {
+                return parse( _d ).then( json=> {
 
                     _d.json = json;
 
