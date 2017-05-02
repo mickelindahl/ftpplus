@@ -1,6 +1,6 @@
 {
   "name": "text-file-import",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Extends jsftp used fetch multiple file content from a remote directory",
   "main": "index.js",
   "scripts": {

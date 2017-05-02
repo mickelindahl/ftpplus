@@ -173,7 +173,7 @@ Adapter.prototype.filter = function ( filter ) {
 
         if ( self.files_filtered.length == 0 ) {
 
-            console.log( 'WARNING no files to load', self.files_filtered )
+            console.log( 'WARNING in text_file_import no files to load', self.files_filtered )
 
         }
 
@@ -285,15 +285,25 @@ Adapter.prototype.parse = function ( parse ) {
 
         data.forEach( d=> {
 
-            promise = new Promise( resolve=> {
+            promise = promise.then(()=>{
+                let _d=d;
+                parse( _d ).then( json=> {
 
-                parse( d ).then( json=> {
+                    _d.json = json;
 
-                    d.json = json;
+                    // resolve(json)
 
-                    resolve(json)
                 } )
-            } );
+            }) ;
+            // new Promise( resolve=> {
+            //
+            //     parse( d ).then( json=> {
+            //
+            //         d.json = json;
+            //
+            //         resolve(json)
+            //     } )
+            // } );
         } );
 
         return promise

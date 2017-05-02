@@ -60,15 +60,15 @@ lab.experiment( 'text file import', function () {
 
                 return {
                     include: f.name == 'data.xml',
-                    visible: false
+                    visible: true
                 }
             } )
             .then( results => {
 
-                //debug(results)
+                debug(results)
 
                 Code.expect( io.files_filtered.length ).to.equal( 1 );
-                Code.expect( io.files_visible.length ).to.equal( 1 );
+                Code.expect( io.files_visible.length ).to.equal( 2 );
 
                 _tmp_files = JSON.parse( JSON.stringify( io.files_filtered ) );
 
