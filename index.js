@@ -458,7 +458,7 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
                         stream.on( 'data', function ( buffer ) {
 
-                            // debug( 'c.on data' );
+                            debug( f.path, 'c.on data' );
                             string += buffer.toString( encoding );
 
                         } );
