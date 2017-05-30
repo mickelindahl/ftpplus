@@ -353,7 +353,8 @@ function diskRead( files, encoding, resolve ) {
         let text = fs.readFileSync( f.path, encoding );
         data.push( {
             text: text,
-            file: f.name
+            file: f.name,
+            last_modified: f.last_modified
         } )
 
     } );
@@ -449,7 +450,8 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
                             data.push( {
                                 text: string,
-                                file: f.name
+                                file: f.name,
+                                last_modified: f.last_modified
                             } );
 
                             return resolveInner()
