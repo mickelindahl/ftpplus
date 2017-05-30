@@ -472,7 +472,8 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
                             data.push( {
                                 text: string,
-                                file: f.name
+                                file: f.name,
+                                last_modified: f.last_modified
                             } );
 
                             resolveInner()
