@@ -239,18 +239,7 @@ lab.experiment( 'text file import', function () {
 
         let serialize = (d1,d2)=>{
 
-            if (! d1.files_incremental){
-
-                d1.files_incremental=[d2.file];
-                d1.texts_incremental=[d2.text];
-
-            }else{
-
-                d1.files_incremental.push(d2.file);
-                d1.texts_incremental.push(d2.text);
-            }
-
-            d1.json=d1.json.concat(d2.json);
+            d1=d1.concat(d2);
 
             return d1
 

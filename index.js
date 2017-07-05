@@ -419,7 +419,19 @@ Adapter.prototype.serialize = function(options) {
 
         incremental.forEach( inc => {
 
-            full = serialize( full, inc )
+            full.json = serialize( full.json, inc.json )
+
+            if (! full.files_incremental){
+
+                full.files_incremental=[inc.file];
+                full.texts_incremental=[inc.text];
+
+            }else{
+
+                full.files_incremental.push(inc.file);
+                full.texts_incremental.push(inc.text);
+            }
+
 
         } );
 
