@@ -346,16 +346,16 @@ Adapter.prototype.parse = function ( parse ) {
  */
 Adapter.prototype.serialize = function(options) {
 
-    let name_full = options.name_full;
-    let serialize = options.merge;
-    let overlap =  options.overlap;
-
     if (!options){
 
         debug( 'serialize skip');
         return this
 
     }
+
+    let name_full = options.name_full;
+    let serialize = options.merge;
+    let overlap =  options.overlap;
 
     let self=this;
 
