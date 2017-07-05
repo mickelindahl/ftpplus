@@ -38,10 +38,10 @@ lab.experiment( 'text file import', function () {
             } )
             .then( results => {
 
-                //debug(results)
+                debug(results)
 
                 Code.expect( io.files_filtered.length ).to.equal( 2 );
-                Code.expect( io.files_visible.length ).to.equal( 3 );
+                Code.expect( io.files_visible.length ).to.equal( 5 );
 
                 return io.files_filtered
 
@@ -229,4 +229,76 @@ lab.experiment( 'text file import', function () {
             } )
 
     } );
+
+    lab.test( 'serialize', function ( done ) {
+        var options = {
+
+            type: 'disk',
+
+        };
+
+        let serialize = (d1,d2)=>{
+
+            if (! d1.files_incremental){
+
+                d1.files_incremental=[d2.file];
+                d1.texts_incremental=[d2.text];
+
+            }else{
+
+                d1.files_incremental.push(d2.file);
+                d1.texts_incremental.push(d2.text);
+            }
+
+            d1.json=d1.json.concat(d2.json);
+
+            return d1
+
+        };
+
+        // let _tmp_files;
+
+        let io = IO( options )
+            .list( './test/full' )
+            .list( './test/incremental' )
+            .then( results => {
+
+                debug(results);
+
+                Code.expect( io.files.length ).to.equal( 3 );
+
+                return results
+
+            } )
+            .read( 'utf8' )
+            .then( results => {
+
+                debug( results )
+            })
+            .parse( d => {return Promise.resolve( JSON.parse(d.text) )} )
+            .then( results => {
+
+                debug(results)
+
+                // Code.expect( io.data.length ).to.equal( 7 );
+
+                //debug(io.data)
+                //Code.expect( results.length ).to.equal( 6 );
+
+                // done()
+            } )
+            .serialize('full.json', serialize)
+            .then( results => {
+
+                debug(results);
+
+                Code.expect( io.data.json.length ).to.equal( 4 );
+
+                //debug(io.data)
+                //Code.expect( results.length ).to.equal( 6 );
+
+                done()
+            } )
+    } );
+
 } );

@@ -36,8 +36,9 @@ class Adapter {
 
         this.credentials = options.credentials;
         this.data = [];
+        this.files=[];
         this.files_visible=[];
-        this.files_filtered=[]
+        this.files_filtered=[];
         this.type = options.type;
         this._promise=Promise.resolve();
 
@@ -91,28 +92,33 @@ Adapter.prototype.list = function ( directory ) {
 
     let self = this;
 
-    this._promise = new Promise( (resolve, reject)=> {
+    this._promise = this._promise.then(()=>{
 
-        if ( self.type == 'disk' ) {
+        return new Promise( (resolve, reject)=> {
 
-            debug( 'list disk' );
+            if ( self.type == 'disk' ) {
 
-            diskList( directory, resolve )
+                debug( 'list disk' );
 
-        } else { //ftp
+                diskList( directory, resolve )
 
-            debug( 'list ftp' );
+            } else { //ftp
 
-            ftpList( directory, self.credentials, resolve, reject )
+                debug( 'list ftp' );
 
-        }
+                ftpList( directory, self.credentials, resolve, reject )
 
-    } ).then((files)=>{
+            }
+
+        } )
+    }).then((files)=>{
 
         // Handle to all files in the directory
-        self.files=files;
+        self.files=self.files.concat(files);
 
-        return files
+        // debug(self.files)
+
+        return self.files
 
     });
 
@@ -145,7 +151,7 @@ Adapter.prototype.filter = function ( filter ) {
             return files
         }
 
-        debug('filter length', filter.length);
+        debug('filter length', filter.length, files);
 
         //clear
         self.files_filtered = [];
@@ -227,6 +233,7 @@ Adapter.prototype.filter = function ( filter ) {
 Adapter.prototype.read = function ( encoding ) {
 
     let self = this;
+
     this._promise = this._promise.then( files=> {
 
         return new Promise( resolve=> {
@@ -281,7 +288,7 @@ Adapter.prototype.parse = function ( parse ) {
 
         debug( 'parse');
 
-        let promise = Promise.resolve()
+        let promise = Promise.resolve();
 
         data.forEach( d=> {
 
@@ -290,6 +297,7 @@ Adapter.prototype.parse = function ( parse ) {
                 return parse( _d ).then( json=> {
 
                     _d.json = json;
+
 
                     // resolve(json)
 
@@ -306,6 +314,12 @@ Adapter.prototype.parse = function ( parse ) {
             // } );
         } );
 
+        promise =  promise.then(()=>{
+
+            return data
+
+        });
+
         return promise
 
     } );
@@ -314,6 +328,97 @@ Adapter.prototype.parse = function ( parse ) {
 
 };
 
+/**
+ *  Serialize content of files into one dataset
+ *
+ *  - `path_full` {string} Filename of file with full snapshot
+ *  - `overlap` {integer} Overlap in minutes between full and first incremental
+ *  - `serialize` {function} Function that takes to data arrays and merge tem into
+ *  one
+ */
+Adapter.prototype.serialize = function(name_full, serialize, overlap) {
+
+    if (!name_full){
+
+        debug( 'serialize skip');
+
+    }
+
+    let self=this;
+
+    overlap = overlap ? overlap : 0
+
+    this._promise = this._promise.then( () => {
+
+        debug( 'serialize' , self.data);
+
+        let full = [];
+        let incremental = [];
+        self.data.forEach( d => {
+
+            if ( d.file == name_full ) {
+
+                full = d;
+                return
+            }
+
+            incremental.push( d )
+
+        } );
+
+        debug( 'serialize incremental', incremental.length );
+
+        incremental = incremental.sort( ( a, b ) => {
+
+            a = a.last_modified;
+            b = b.last_modified;
+
+            if ( a < b ) {
+
+                return 1
+
+            } else if ( a > b ) {
+
+                return -1
+
+            } else {
+
+                return 0
+
+            }
+
+        } );
+
+        let date_full=moment(full.last_modified).subtract(overlap, 'minutes')
+        incremental = incremental.reduce((tot,val)=>{
+
+            let date_inc = moment(val.last_modified);
+
+            if (date_full<=date_inc){
+
+                tot.push(val)
+
+            }
+
+            return tot
+
+        }, []);
+
+        incremental.forEach( inc => {
+
+            full = serialize( full, inc )
+
+        } );
+
+        self.data=full;
+
+        return full;
+
+    } )
+
+    return this
+
+}
 
 function diskList( directory, resolve ) {
 
@@ -497,6 +602,7 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
     } ).connect( credentials );
 }
+
 
 module.exports = ( options )=> {
     return new Adapter( options )
