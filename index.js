@@ -338,14 +338,19 @@ Adapter.prototype.parse = function ( parse ) {
 /**
  *  Serialize content of files into one dataset
  *
- *  - `path_full` {string} Filename of file with full snapshot
- *  - `overlap` {integer} Overlap in minutes between full and first incremental
- *  - `serialize` {function} Function that takes to data arrays and merge tem into
+ *  - `options`
+ *    - `merge` {function} Function that takes to data arrays and merge tem into
+ *    - `path_full` {string} Filename of file with full snapshot
+ *    - `overlap` {integer} Overlap in minutes between full and first incremental
  *  one
  */
-Adapter.prototype.serialize = function(name_full, serialize, overlap) {
+Adapter.prototype.serialize = function(options) {
 
-    if (!name_full){
+    let name_full = options.name_full;
+    let serialize = options.merge;
+    let overlap =  options.overlap;
+
+    if (!options){
 
         debug( 'serialize skip');
         return this
@@ -354,7 +359,7 @@ Adapter.prototype.serialize = function(name_full, serialize, overlap) {
 
     let self=this;
 
-    overlap = overlap ? overlap : 0
+    overlap = overlap ? overlap : 0;
 
     this._promise = this._promise.then( () => {
 

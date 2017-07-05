@@ -287,7 +287,7 @@ lab.experiment( 'text file import', function () {
 
                 // done()
             } )
-            .serialize('full.json', serialize)
+            .serialize({name_full:'full.json', merge:serialize})
             .then( results => {
 
                 debug(results);
