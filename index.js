@@ -90,6 +90,13 @@ Adapter.prototype.catch = function ( reject ) {
  */
 Adapter.prototype.list = function ( directory ) {
 
+    if (!directory){
+
+        debug('list no directory skipping');
+        return this
+
+    }
+
     let self = this;
 
     this._promise = this._promise.then(()=>{
@@ -341,6 +348,7 @@ Adapter.prototype.serialize = function(name_full, serialize, overlap) {
     if (!name_full){
 
         debug( 'serialize skip');
+        return this
 
     }
 
