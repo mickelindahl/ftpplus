@@ -31,67 +31,76 @@ lab.experiment( 'text file import', function () {
             .list( './test' )
             .filter( f => {
 
-                return {
-                    include: ['data.xml', 'index.js'].indexOf( f.name ) != -1,
-                    visible: true
-                }
+                let bool =  ['data.xml', 'index.js'].indexOf( f.name ) != -1
+
+                debug(bool, f)
+
+                return bool
+
+                //return {
+                //    include: ['data.xml', 'index.js'].indexOf( f.name ) != -1,
+                //    visible: true
+                //}
             } )
             .then( results => {
 
+                //console.log(results)
                 debug(results)
 
                 Code.expect( io.files_filtered.length ).to.equal( 2 );
-                Code.expect( io.files_visible.length ).to.equal( 5 );
+                //Code.expect( io.files_visible.length ).to.equal( 5 );
 
                 return io.files_filtered
 
             } )
-            .filter()
-            .then( results => {
-
-                //debug(results)
-
-                Code.expect( io.files_filtered.length ).to.equal( 2 );
-                Code.expect( io.files_visible.length ).to.equal( 2 );
-
-                return io.files_visible
-            } )
+            //.filter()
+            //.then( results => {
+            //
+            //    //debug(results)
+            //
+            //    Code.expect( io.files_filtered.length ).to.equal( 2 );
+            //    Code.expect( io.files_visible.length ).to.equal( 2 );
+            //
+            //    return io.files_visible
+            //} )
             .filter( f => {
 
-                return {
-                    include: f.name == 'data.xml',
-                    visible: true
-                }
+                return f.name == 'data.xml'
+
+                //return {
+                //    include: f.name == 'data.xml',
+                //    visible: true
+                //}
             } )
             .then( results => {
 
-                debug(results)
+                debug(results);
 
+                //Code.expect( io.files.length ).to.equal( 1 );
                 Code.expect( io.files_filtered.length ).to.equal( 1 );
-                Code.expect( io.files_visible.length ).to.equal( 2 );
+                //Code.expect( io.files_visible.length ).to.equal( 2 );
 
                 _tmp_files = JSON.parse( JSON.stringify( io.files_filtered ) );
 
-                return io.files_visible
+                return _tmp_files
             } )
             .filter( f => {
 
-                return {
-                    include: false,
-                    visible: false
-                }
+                return  false
+                    //visible: false
+                //}
             } )
             .then( results => {
 
                 //debug(results)
 
                 Code.expect( io.files_filtered.length ).to.equal( 0 );
-                Code.expect( io.files_visible.length ).to.equal( 0 );
+                //Code.expect( io.files_visible.length ).to.equal( 0 );
 
                 io.files_filtered = _tmp_files;
-                io.files_visible = _tmp_files;
+                //io.files_visible = _tmp_files;
 
-                return io.files_visible
+                return _tmp_files
             } )
             .read( 'utf8' )
             .parse( d => {return Promise.resolve( d.text )} )
@@ -123,12 +132,18 @@ lab.experiment( 'text file import', function () {
 
         let io = IO( options )
             .list( '.' )
+            .then( results => {
+
+                            debug(results);
+
+                            //Code.expect( io.files.length ).to.equal( 3 );
+
+                            return results
+
+                        } )
             .filter( f => {
 
-                return {
-                    include: ['readme.txt'].indexOf( f.name ) != -1,
-                    visible: true
-                }
+                return  ['readme.txt'].indexOf( f.name ) != -1
             } )
             .read( 'utf8' )
             .then( res => {
@@ -281,7 +296,7 @@ lab.experiment( 'text file import', function () {
 
                 debug(results);
 
-                Code.expect( io.data.json.length ).to.equal( 4 );
+                Code.expect( io.data.json.length ).to.equal( 6 );
 
                 //debug(io.data)
                 //Code.expect( results.length ).to.equal( 6 );

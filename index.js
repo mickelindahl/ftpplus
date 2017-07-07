@@ -37,7 +37,7 @@ class Adapter {
         this.credentials = options.credentials;
         this.data = [];
         this.files=[];
-        this.files_visible=[];
+        //this.files_visible=[];
         this.files_filtered=[];
         this.type = options.type;
         this._promise=Promise.resolve();
@@ -150,63 +150,73 @@ Adapter.prototype.filter = function ( filter ) {
 
     this._promise = this._promise.then( files=> {
 
+        debug('filter')
+
         if ( !filter ) {
 
-            self.files_filtered = files;
-            self.files_visible = files;
+            debug('filter no filter');
+            //self.files_filtered = files;
+            //self.files_visible = files;
 
             return files
         }
 
-        debug('filter length', filter.length);
+        //debug('filter length', filter.length);
 
         //clear
         self.files_filtered = [];
-        self.files_visible = [];
+        //self.files_visible = [];
 
 
-        let result;
+        //let result;
         files.forEach( f=> {
 
-            result=filter(f)
-
-            if (result.include && result.visible){
+            if (filter(f)){
 
                 self.files_filtered.push(f)
-                self.files_visible.push(f)
 
-            }else if (result.visible){
-
-
-                self.files_visible.push(f)
             }
+
+            //result=filter(f);
+            //
+            //if (result.include && result.visible){
+            //
+            //    self.files_filtered.push(f)
+            //    self.files_visible.push(f)
+            //
+            //}else if (result.visible){
+            //
+            //
+            //    self.files_visible.push(f)
+            //}
 
         } );
 
 
         if ( self.files_filtered.length == 0 ) {
+            //if ( self.files_filtered.length == 0 ) {
 
             console.log( 'WARNING in text_file_import no files to load', self.files_filtered )
 
         }
 
 
-        self.files_visible = self.files_visible.sort((a,b)=>{
-
-            a=a.name
-            b=b.name
-
-            if (a>b){
-                return 1
-            } else if (a<b){
-                return -1
-            }else{
-                return 0
-            }
-
-        });
-
-
+        //self.files_visible = self.files_visible.sort((a,b)=>{
+        //
+        //    a=a.name
+        //    b=b.name
+        //
+        //    if (a>b){
+        //        return 1
+        //    } else if (a<b){
+        //        return -1
+        //    }else{
+        //        return 0
+        //    }
+        //
+        //});
+        //
+        //
         self.files_filtered = self.files_filtered.sort((a,b)=>{
 
             a=a.name;
@@ -221,6 +231,7 @@ Adapter.prototype.filter = function ( filter ) {
             }
 
         });
+
 
         return self.files_filtered;
 
