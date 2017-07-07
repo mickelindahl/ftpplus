@@ -158,7 +158,7 @@ Adapter.prototype.filter = function ( filter ) {
             return files
         }
 
-        debug('filter length', filter.length, files);
+        debug('filter length', filter.length);
 
         //clear
         self.files_filtered = [];
@@ -363,7 +363,7 @@ Adapter.prototype.serialize = function(options) {
 
     this._promise = this._promise.then( () => {
 
-        debug( 'serialize' , self.data);
+        debug( 'serialize');
 
         let full = [];
         let incremental = [];
@@ -509,7 +509,7 @@ function ftpList( directory, credentials, resolve, reject ) {
     var c = Client();
     c.on( 'ready', function () {
 
-        debug('ftpList', directory)
+        debug('ftpList', directory);
 
         c.list( directory, function ( err, list ) {
             if ( err ){
@@ -561,7 +561,7 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
         let promise = Promise.resolve();
 
-        debug('ftpRead ', files.length, 'files')
+        debug('ftpRead ', files.length, 'files');
 
         files.forEach( f=> {
 
