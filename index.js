@@ -350,9 +350,119 @@ Adapter.prototype.parse = function ( parse ) {
  *  Serialize content of files into one dataset
  *
  *  - `options`
- *    - `merge` {function} Function that takes to data arrays and merge tem into
- *    - `path_full` {string} Filename of file with full snapshot
+ *    - `name_full` {string} Filename of file with full snapshot
  *    - `overlap` {integer} Overlap in minutes between full and first incremental
+ *  one
+ */
+Adapter.prototype.filter_serialize = function(options) {
+
+    if (!options){
+
+        debug( 'filter serialize skip');
+        return this
+
+    }
+
+    let name_full = options.name_full;
+    let overlap =  options.overlap;
+
+    let self=this;
+
+    overlap = overlap ? overlap : 0;
+
+    this._promise = this._promise.then( files => {
+
+        debug( 'serialize filter');
+
+        let full;
+        let filtered = [];
+        files.forEach( d => {
+
+
+            if ( d.name == name_full ) {
+
+                full = d;
+            }
+
+            filtered.push( d )
+
+        } );
+
+
+        if (!full){
+
+            let err = new Error('Missing file with snapshot. Need to set name_full options correct')
+            console.error(err)
+            throw err
+
+        }
+
+        filtered = filtered.sort( ( a, b ) => {
+
+            a = a.last_modified;
+            b = b.last_modified;
+
+            if ( a < b ) {
+
+                return 1
+
+            } else if ( a > b ) {
+
+                return -1
+
+            } else {
+
+                return 0
+
+            }
+
+        } );
+
+        let date_full=moment(full.last_modified).subtract(overlap, 'minutes')
+
+
+        debug( filtered );
+        debug( date_full );
+
+        filtered = filtered.reduce((tot,val)=>{
+
+            let date_inc = moment(val.last_modified);
+
+            debug(date_inc);
+
+            if (date_full<=date_inc){
+
+                tot.push(val)
+
+            }
+
+            return tot
+
+        }, []);
+
+
+        debug(filtered)
+
+
+        debug( 'serialize filter', filtered.length );
+
+        self.files_filtered=filtered;
+
+        return self.files_filtered;
+
+    } )
+
+    return this
+
+}
+
+
+/**
+ *  Serialize content of files into one dataset
+ *
+ *  - `options`
+ *    - `merge` {function} Function that takes to data arrays and merge tem into
+ *    - `name_full` {string} Filename of file with full snapshot
  *  one
  */
 Adapter.prototype.serialize = function(options) {
@@ -366,11 +476,9 @@ Adapter.prototype.serialize = function(options) {
 
     let name_full = options.name_full;
     let serialize = options.merge;
-    let overlap =  options.overlap;
 
     let self=this;
 
-    overlap = overlap ? overlap : 0;
 
     this._promise = this._promise.then( () => {
 
@@ -413,24 +521,9 @@ Adapter.prototype.serialize = function(options) {
 
         } );
 
-        let date_full=moment(full.last_modified).subtract(overlap, 'minutes')
-        incremental = incremental.reduce((tot,val)=>{
-
-            let date_inc = moment(val.last_modified);
-
-            if (date_full<=date_inc){
-
-                tot.push(val)
-
-            }
-
-            return tot
-
-        }, []);
-
         incremental.forEach( inc => {
 
-            full.json = serialize( full.json, inc.json )
+            full.json = serialize( full.json, inc.json );
 
             if (! full.files_incremental){
 
@@ -450,7 +543,7 @@ Adapter.prototype.serialize = function(options) {
 
         return full;
 
-    } )
+    } );
 
     return this
 

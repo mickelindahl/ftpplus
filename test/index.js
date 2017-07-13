@@ -265,6 +265,7 @@ lab.experiment( 'text file import', function () {
         let io = IO( options )
             .list( './test/full' )
             .list( './test/incremental' )
+            .filter_serialize({name_full:'full.json'})
             .then( results => {
 
                 debug(results);
