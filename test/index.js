@@ -28,24 +28,26 @@ lab.experiment( 'text file import', function () {
         let _tmp_files;
 
         let io = IO( options )
-            .list( './test' )
-            .filter( f => {
+            .list( '.' )
+            .filter( {
+                filter: f => {
 
-                let bool =  ['data.xml', 'index.js'].indexOf( f.name ) != -1
+                    let bool = ['data.xml', 'index.js'].indexOf( f.name ) != -1
 
-                debug(bool, f)
+                    debug( bool, f )
 
-                return bool
+                    return bool
 
-                //return {
-                //    include: ['data.xml', 'index.js'].indexOf( f.name ) != -1,
-                //    visible: true
-                //}
+                    //return {
+                    //    include: ['data.xml', 'index.js'].indexOf( f.name ) != -1,
+                    //    visible: true
+                    //}
+                }
             } )
             .then( results => {
 
                 //console.log(results)
-                debug(results)
+                debug( results )
 
                 Code.expect( io.files_filtered.length ).to.equal( 2 );
                 //Code.expect( io.files_visible.length ).to.equal( 5 );
@@ -63,18 +65,20 @@ lab.experiment( 'text file import', function () {
             //
             //    return io.files_visible
             //} )
-            .filter( f => {
+            .filter( {
+                filter: f => {
 
-                return f.name == 'data.xml'
+                    return f.name == 'data.xml'
 
-                //return {
-                //    include: f.name == 'data.xml',
-                //    visible: true
-                //}
+                    //return {
+                    //    include: f.name == 'data.xml',
+                    //    visible: true
+                    //}
+                }
             } )
             .then( results => {
 
-                debug(results);
+                debug( results );
 
                 //Code.expect( io.files.length ).to.equal( 1 );
                 Code.expect( io.files_filtered.length ).to.equal( 1 );
@@ -84,11 +88,13 @@ lab.experiment( 'text file import', function () {
 
                 return _tmp_files
             } )
-            .filter( f => {
+            .filter( {
+                filter: f => {
 
-                return  false
+                    return false
                     //visible: false
-                //}
+                    //}
+                }
             } )
             .then( results => {
 
@@ -134,16 +140,18 @@ lab.experiment( 'text file import', function () {
             .list( '.' )
             .then( results => {
 
-                            debug(results);
+                debug( results );
 
-                            //Code.expect( io.files.length ).to.equal( 3 );
+                //Code.expect( io.files.length ).to.equal( 3 );
 
-                            return results
+                return results
 
-                        } )
-            .filter( f => {
+            } )
+            .filter( {
+                filter: f => {
 
-                return  ['readme.txt'].indexOf( f.name ) != -1
+                    return ['readme.txt'].indexOf( f.name ) != -1
+                }
             } )
             .read( 'utf8' )
             .then( res => {
@@ -191,7 +199,6 @@ lab.experiment( 'text file import', function () {
             } )
 
     } );
-
 
     lab.test( 'list sftp no existant direcotry', function ( done ) {
         var options = {
@@ -252,9 +259,9 @@ lab.experiment( 'text file import', function () {
 
         };
 
-        let serialize = (d1,d2)=>{
+        let serialize = ( d1, d2 ) => {
 
-            d1=d1.concat(d2);
+            d1 = d1.concat( d2 );
 
             return d1
 
@@ -263,12 +270,12 @@ lab.experiment( 'text file import', function () {
         // let _tmp_files;
 
         let io = IO( options )
-            .list( './test/full' )
-            .list( './test/incremental' )
-            .filter_serialize({name_full:'full.json'})
+            .list( './full' )
+            .list( './incremental' )
+            .filter( { serialize: { name_full: 'full.json' } } )
             .then( results => {
 
-                debug(results);
+                debug( results );
 
                 Code.expect( io.files.length ).to.equal( 3 );
 
@@ -279,11 +286,11 @@ lab.experiment( 'text file import', function () {
             .then( results => {
 
                 debug( results )
-            })
-            .parse( d => {return Promise.resolve( JSON.parse(d.text) )} )
+            } )
+            .parse( d => {return Promise.resolve( JSON.parse( d.text ) )} )
             .then( results => {
 
-                debug(results)
+                debug( results )
 
                 // Code.expect( io.data.length ).to.equal( 7 );
 
@@ -292,12 +299,12 @@ lab.experiment( 'text file import', function () {
 
                 // done()
             } )
-            .serialize({name_full:'full.json', merge:serialize})
+            .serialize( { name_full: 'full.json', merge: serialize } )
             .then( results => {
 
-                debug(results);
+                debug( results );
 
-                Code.expect( io.data.json.length ).to.equal( 6 );
+                Code.expect( io.data[0].json.length ).to.equal( 6 );
 
                 //debug(io.data)
                 //Code.expect( results.length ).to.equal( 6 );

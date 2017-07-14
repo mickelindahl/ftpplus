@@ -132,6 +132,112 @@ Adapter.prototype.list = function ( directory ) {
     return this
 };
 
+function sortFiles(files){
+
+    return files.sort( ( a, b ) => {
+
+        a = a.last_modified;
+        b = b.last_modified;
+
+        if ( a < b ) {
+
+            return 1
+
+        } else if ( a > b ) {
+
+            return -1
+
+        } else {
+
+            return 0
+
+        }
+
+    } );
+}
+
+function _filterSerialize(files, serialize){
+
+    debug('filter serialize');
+
+    let overlap =  serialize.overlap ? serialize.overlap : 0;
+
+    let full;
+    let filtered = [];
+    files.forEach( d => {
+
+
+        if ( d.name == serialize.name_full ) {
+
+            full = d;
+        }
+
+        filtered.push( d )
+
+    } );
+
+
+    if (!full){
+
+        let err = new Error('Missing file with snapshot. Need to set name_full options correct')
+        console.error(err)
+        throw err
+
+    }
+
+    let date_full=moment(full.last_modified).subtract(overlap, 'minutes')
+
+    filtered = sortFiles(filtered)
+
+    debug( filtered );
+    debug( date_full );
+
+    filtered = filtered.reduce((tot,val)=>{
+
+        let date_inc = moment(val.last_modified);
+
+        debug(date_inc);
+
+        if (date_full<=date_inc){
+
+            tot.push(val)
+
+        }
+
+        return tot
+
+    }, []);
+
+    return filtered
+
+
+
+}
+
+function _filterStandard(files, filter){
+
+    debug('filter standard');
+
+    let files_filtered = [];
+
+    //let result;
+    files.forEach( f=> {
+
+        if (filter(f)){
+
+            files_filtered.push(f)
+
+        }
+
+    } );
+
+    files_filtered = sortFiles(files_filtered)
+
+    return files_filtered
+
+
+}
+
 /**
  * Apply filter to filters in directory. Date filter effects the `this.files` attribute
  * whereas the onFileName filter does not.
@@ -144,94 +250,41 @@ Adapter.prototype.list = function ( directory ) {
  * @memberof Adapter
  * @returns {Adapter}
  */
-Adapter.prototype.filter = function ( filter ) {
+Adapter.prototype.filter = function ( options ) {
+
 
     let self=this;
 
     this._promise = this._promise.then( files=> {
 
-        debug('filter')
+        debug('filter');
 
-        if ( !filter ) {
+        let files_filtered;
+
+        if (options.serialize){
+
+            files_filtered = _filterSerialize(files, options.serialize)
+
+        }else if (options.filter){
+
+            files_filtered = _filterStandard(files, options.filter)
+
+        }else{
 
             debug('filter no filter');
-            //self.files_filtered = files;
-            //self.files_visible = files;
 
-            return files
-        }
-
-        //debug('filter length', filter.length);
-
-        //clear
-        self.files_filtered = [];
-        //self.files_visible = [];
-
-
-        //let result;
-        files.forEach( f=> {
-
-            if (filter(f)){
-
-                self.files_filtered.push(f)
-
-            }
-
-            //result=filter(f);
-            //
-            //if (result.include && result.visible){
-            //
-            //    self.files_filtered.push(f)
-            //    self.files_visible.push(f)
-            //
-            //}else if (result.visible){
-            //
-            //
-            //    self.files_visible.push(f)
-            //}
-
-        } );
-
-
-        if ( self.files_filtered.length == 0 ) {
-            //if ( self.files_filtered.length == 0 ) {
-
-            console.log( 'WARNING in text_file_import no files to load', self.files_filtered )
+            files_filtered = files;
 
         }
 
 
-        //self.files_visible = self.files_visible.sort((a,b)=>{
-        //
-        //    a=a.name
-        //    b=b.name
-        //
-        //    if (a>b){
-        //        return 1
-        //    } else if (a<b){
-        //        return -1
-        //    }else{
-        //        return 0
-        //    }
-        //
-        //});
-        //
-        //
-        self.files_filtered = self.files_filtered.sort((a,b)=>{
+        if (files_filtered.length == 0 ) {
 
-            a=a.name;
-            b=b.name;
+            console.log( 'WARNING in text_file_import no files to load', files_filtered )
 
-            if (a>b){
-                return 1
-            } else if (a<b){
-                return -1
-            }else{
-                return 0
-            }
+        }
 
-        });
-
+        self.files_filtered = files_filtered;
 
         return self.files_filtered;
 
@@ -346,115 +399,115 @@ Adapter.prototype.parse = function ( parse ) {
 
 };
 
-/**
- *  Serialize content of files into one dataset
- *
- *  - `options`
- *    - `name_full` {string} Filename of file with full snapshot
- *    - `overlap` {integer} Overlap in minutes between full and first incremental
- *  one
- */
-Adapter.prototype.filter_serialize = function(options) {
-
-    if (!options){
-
-        debug( 'filter serialize skip');
-        return this
-
-    }
-
-    let name_full = options.name_full;
-    let overlap =  options.overlap;
-
-    let self=this;
-
-    overlap = overlap ? overlap : 0;
-
-    this._promise = this._promise.then( files => {
-
-        debug( 'serialize filter');
-
-        let full;
-        let filtered = [];
-        files.forEach( d => {
-
-
-            if ( d.name == name_full ) {
-
-                full = d;
-            }
-
-            filtered.push( d )
-
-        } );
-
-
-        if (!full){
-
-            let err = new Error('Missing file with snapshot. Need to set name_full options correct')
-            console.error(err)
-            throw err
-
-        }
-
-        filtered = filtered.sort( ( a, b ) => {
-
-            a = a.last_modified;
-            b = b.last_modified;
-
-            if ( a < b ) {
-
-                return 1
-
-            } else if ( a > b ) {
-
-                return -1
-
-            } else {
-
-                return 0
-
-            }
-
-        } );
-
-        let date_full=moment(full.last_modified).subtract(overlap, 'minutes')
-
-
-        debug( filtered );
-        debug( date_full );
-
-        filtered = filtered.reduce((tot,val)=>{
-
-            let date_inc = moment(val.last_modified);
-
-            debug(date_inc);
-
-            if (date_full<=date_inc){
-
-                tot.push(val)
-
-            }
-
-            return tot
-
-        }, []);
-
-
-        debug(filtered)
-
-
-        debug( 'serialize filter', filtered.length );
-
-        self.files_filtered=filtered;
-
-        return self.files_filtered;
-
-    } )
-
-    return this
-
-}
+///**
+// *  Serialize content of files into one dataset
+// *
+// *  - `options`
+// *    - `name_full` {string} Filename of file with full snapshot
+// *    - `overlap` {integer} Overlap in minutes between full and first incremental
+// *  one
+// */
+//Adapter.prototype.filter_serialize = function(options) {
+//
+//    if (!options){
+//
+//        debug( 'filter serialize skip');
+//        return this
+//
+//    }
+//
+//    let name_full = options.name_full;
+//    let overlap =  options.overlap;
+//
+//    let self=this;
+//
+//    overlap = overlap ? overlap : 0;
+//
+//    this._promise = this._promise.then( files => {
+//
+//        debug( 'serialize filter');
+//
+//        let full;
+//        let filtered = [];
+//        files.forEach( d => {
+//
+//
+//            if ( d.name == name_full ) {
+//
+//                full = d;
+//            }
+//
+//            filtered.push( d )
+//
+//        } );
+//
+//
+//        if (!full){
+//
+//            let err = new Error('Missing file with snapshot. Need to set name_full options correct')
+//            console.error(err)
+//            throw err
+//
+//        }
+//
+//        filtered = filtered.sort( ( a, b ) => {
+//
+//            a = a.last_modified;
+//            b = b.last_modified;
+//
+//            if ( a < b ) {
+//
+//                return 1
+//
+//            } else if ( a > b ) {
+//
+//                return -1
+//
+//            } else {
+//
+//                return 0
+//
+//            }
+//
+//        } );
+//
+//        let date_full=moment(full.last_modified).subtract(overlap, 'minutes')
+//
+//
+//        debug( filtered );
+//        debug( date_full );
+//
+//        filtered = filtered.reduce((tot,val)=>{
+//
+//            let date_inc = moment(val.last_modified);
+//
+//            debug(date_inc);
+//
+//            if (date_full<=date_inc){
+//
+//                tot.push(val)
+//
+//            }
+//
+//            return tot
+//
+//        }, []);
+//
+//
+//        debug(filtered)
+//
+//
+//        debug( 'serialize filter', filtered.length );
+//
+//        self.files_filtered=filtered;
+//
+//        return self.files_filtered;
+//
+//    } )
+//
+//    return this
+//
+//}
 
 
 /**
