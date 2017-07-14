@@ -539,9 +539,9 @@ Adapter.prototype.serialize = function(options) {
 
         } );
 
-        self.data=full;
+        self.data=[full];
 
-        return full;
+        return self.data;
 
     } );
 
