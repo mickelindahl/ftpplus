@@ -541,7 +541,7 @@ Adapter.prototype.serialize = function(options) {
         let incremental = [];
         self.data.forEach( d => {
 
-            if ( d.file == name_full ) {
+            if ( d.file.name == name_full ) {
 
                 full = d;
                 return
@@ -580,12 +580,12 @@ Adapter.prototype.serialize = function(options) {
 
             if (! full.files_incremental){
 
-                full.files_incremental=[inc.file];
+                full.files_incremental=[inc.file.name];
                 full.texts_incremental=[inc.text];
 
             }else{
 
-                full.files_incremental.push(inc.file);
+                full.files_incremental.push(inc.file.name);
                 full.texts_incremental.push(inc.text);
             }
 
@@ -642,9 +642,7 @@ function diskRead( files, encoding, resolve ) {
         let text = fs.readFileSync( f.path, encoding );
         data.push( {
             text: text,
-            file: f.name,
-            last_modified: f.last_modified,
-            imported_at:f.imported_at
+            file: f
         } )
 
     } );
@@ -741,9 +739,7 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
                             data.push( {
                                 text: string,
-                                file: f.name,
-                                last_modified: f.last_modified,
-                                imported_at:f.imported_at
+                                file: f
                             } );
 
                             return resolveInner()
@@ -764,8 +760,7 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
                             data.push( {
                                 text: string,
-                                file: f.name,
-                                last_modified: f.last_modified
+                                file: f
                             } );
 
                             resolveInner()
