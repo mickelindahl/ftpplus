@@ -615,10 +615,12 @@ function diskList( directory, resolve ) {
     _files.forEach( file => {
 
         files.push( {
+
             path: directory + '/' + file,
             name: file,
             directory: directory,
-            last_modified: moment(fs.lstatSync(directory + '/' + file).mtime).format('YYYY-MM-DD HH:mm')
+            last_modified: moment(fs.lstatSync(directory + '/' + file).mtime).format('YYYY-MM-DD HH:mm'),
+            imported_at: moment().format('YYYY-MM-DD HH:mm')
 
         } )
 
@@ -641,7 +643,8 @@ function diskRead( files, encoding, resolve ) {
         data.push( {
             text: text,
             file: f.name,
-            last_modified: f.last_modified
+            last_modified: f.last_modified,
+            imported_at:f.imported_at
         } )
 
     } );
@@ -682,7 +685,8 @@ function ftpList( directory, credentials, resolve, reject ) {
                     path: directory + '/' + l.name,
                     name: l.name,
                     directory: directory,
-                    last_modified: moment(l.date).format('YYYY-MM-DD HH:mm')
+                    last_modified: moment(l.date).format('YYYY-MM-DD HH:mm'),
+                    imported_at: moment().format('YYYY-MM-DD HH:mm')
                 } )
             } );
 
@@ -733,12 +737,13 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
                         if ( err ){
 
-                            console.error('text-file-import ftpRead WARNING: ', err);
+                            console.error('text-file-import ftpRead WARNING: ', f, err);
 
                             data.push( {
                                 text: string,
                                 file: f.name,
-                                last_modified: f.last_modified
+                                last_modified: f.last_modified,
+                                imported_at:f.imported_at
                             } );
 
                             return resolveInner()

@@ -28,7 +28,7 @@ lab.experiment( 'text file import', function () {
         let _tmp_files;
 
         let io = IO( options )
-            .list( '.' )
+            .list( './test' )
             .filter( {
                 filter: f => {
 
@@ -270,8 +270,8 @@ lab.experiment( 'text file import', function () {
         // let _tmp_files;
 
         let io = IO( options )
-            .list( './full' )
-            .list( './incremental' )
+            .list( './test/full' )
+            .list( './test/incremental' )
             .filter( { serialize: { name_full: 'full.json' } } )
             .then( results => {
 
