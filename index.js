@@ -242,9 +242,14 @@ function _filterStandard(files, filter){
  * Apply filter to filters in directory. Date filter effects the `this.files` attribute
  * whereas the onFileName filter does not.
  *
- *  - `filter` Function function({file object}) which should return a object
- *  with the keys `include` true|false and `visible` true|false. `include`  tells weather the
- *  file should be filtered out and `visible` tells weather it the file should be included in the
+ *  - `filter(file)` {function} Should return true | false if file should be
+ *    included or not
+ *    - `file` File data object
+ *      - `directory` {string} Directory of file
+ *      - `imported_at` {string} Date of import
+ *      - `last_modified` {string} Date of last file modification
+ *      - `name` {string} Name of file
+ *      - `path` {string} Full path to file
  *  `this.files_visible` array.
  *
  * @memberof Adapter
@@ -541,7 +546,7 @@ Adapter.prototype.serialize = function(options) {
         let incremental = [];
         self.data.forEach( d => {
 
-            if ( d.file.name == name_full ) {
+            if ( d.file_name == name_full ) {
 
                 full = d;
                 return
@@ -580,12 +585,12 @@ Adapter.prototype.serialize = function(options) {
 
             if (! full.files_incremental){
 
-                full.files_incremental=[inc.file.name];
+                full.files_incremental=[inc.file_name];
                 full.texts_incremental=[inc.text];
 
             }else{
 
-                full.files_incremental.push(inc.file.name);
+                full.files_incremental.push(inc.file_name);
                 full.texts_incremental.push(inc.text);
             }
 
@@ -642,7 +647,7 @@ function diskRead( files, encoding, resolve ) {
         let text = fs.readFileSync( f.path, encoding );
         data.push( {
             text: text,
-            file: f
+            file_name: f.name
         } )
 
     } );
@@ -739,7 +744,7 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
                             data.push( {
                                 text: string,
-                                file: f
+                                file_name: f.name
                             } );
 
                             return resolveInner()
@@ -760,7 +765,7 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
                             data.push( {
                                 text: string,
-                                file: f
+                                file_name: f.name
                             } );
 
                             resolveInner()

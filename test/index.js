@@ -304,7 +304,7 @@ lab.experiment( 'text file import', function () {
 
                 debug( results );
 
-                Code.expect( io.data[0].json.length ).to.equal( 6 );
+                Code.expect( io.data[0].json.length ).to.equal( 4 );
 
                 //debug(io.data)
                 //Code.expect( results.length ).to.equal( 6 );
