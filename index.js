@@ -8,7 +8,7 @@ const Client = require( 'sftpjs' );
 const Promise = require( 'bluebird' );
 const debug = require( 'debug' )( 'text_file_import:index.js' );
 const fs = require( 'fs' );
-const moment=require('moment');
+const moment = require( 'moment' );
 
 
 /**
@@ -35,16 +35,18 @@ class Adapter {
         // super(options, options);
 
         this.credentials = options.credentials;
+        this.file_manager_modified = options.file_manager_modified;
+        this.path_file_manager = options.path_file_manager;
         this.data = [];
-        this.files=[];
+        this.files = [];
         //this.files_visible=[];
-        this.files_filtered=[];
+        this.files_filtered = [];
         this.type = options.type;
-        this._promise=Promise.resolve();
+        this._promise = Promise.resolve();
 
-        if (['ftp', 'disk'].indexOf(this.type) ==-1){
+        if ( ['ftp', 'disk'].indexOf( this.type ) == -1 ) {
 
-            this._promise=Promise.reject( 'Unsupported type import source type ' + this.type )
+            this._promise = Promise.reject( 'Unsupported type import source type ' + this.type )
 
         }
 
@@ -90,18 +92,18 @@ Adapter.prototype.catch = function ( reject ) {
  */
 Adapter.prototype.list = function ( directory ) {
 
-    if (!directory){
+    if ( !directory ) {
 
-        debug('list no directory skipping');
+        debug( 'list no directory skipping' );
         return this
 
     }
 
     let self = this;
 
-    this._promise = this._promise.then(()=>{
+    this._promise = this._promise.then( () => {
 
-        return new Promise( (resolve, reject)=> {
+        return new Promise( ( resolve, reject ) => {
 
             if ( self.type == 'disk' ) {
 
@@ -118,125 +120,21 @@ Adapter.prototype.list = function ( directory ) {
             }
 
         } )
-    }).then((files)=>{
+    } ).then( ( files ) => {
 
         // Handle to all files in the directory
-        self.files=self.files.concat(files);
+        self.files = self.files.concat( files );
 
         // debug(self.files)
 
-        return self.files
+        return {
+            listed_files: self.files
+        }
 
-    });
+    } );
 
     return this
 };
-
-function sortFiles(files){
-
-    return files.sort( ( a, b ) => {
-
-        a = a.last_modified;
-        b = b.last_modified;
-
-        if ( a < b ) {
-
-            return 1
-
-        } else if ( a > b ) {
-
-            return -1
-
-        } else {
-
-            return 0
-
-        }
-
-    } );
-}
-
-function _filterSerialize(files, serialize){
-
-    debug('filter serialize');
-
-    let overlap =  serialize.overlap ? serialize.overlap : 0;
-
-    let full;
-    let filtered = [];
-    files.forEach( d => {
-
-
-        if ( d.name == serialize.name_full ) {
-
-            full = d;
-        }
-
-        filtered.push( d )
-
-    } );
-
-
-    if (!full){
-
-        let err = new Error('Missing file with snapshot. Need to set name_full options correct')
-        console.error(err)
-        throw err
-
-    }
-
-    let date_full=moment(full.last_modified).subtract(overlap, 'minutes')
-
-    filtered = sortFiles(filtered)
-
-    debug( filtered );
-    debug( date_full );
-
-    filtered = filtered.reduce((tot,val)=>{
-
-        let date_inc = moment(val.last_modified);
-
-        debug(date_inc);
-
-        if (date_full<=date_inc){
-
-            tot.push(val)
-
-        }
-
-        return tot
-
-    }, []);
-
-    return filtered
-
-
-
-}
-
-function _filterStandard(files, filter){
-
-    debug('filter standard');
-
-    let files_filtered = [];
-
-    //let result;
-    files.forEach( f=> {
-
-        if (filter(f)){
-
-            files_filtered.push(f)
-
-        }
-
-    } );
-
-    files_filtered = sortFiles(files_filtered)
-
-    return files_filtered
-
-
-}
 
 /**
  * Apply filter to filters in directory. Date filter effects the `this.files` attribute
@@ -258,45 +156,133 @@ function _filterStandard(files, filter){
 Adapter.prototype.filter = function ( options ) {
 
 
-    let self=this;
+    let self = this;
 
-    this._promise = this._promise.then( files=> {
+    this._promise = this._promise.then( result => {
 
-        debug('filter');
+        debug( 'filter' );
 
         let files_filtered;
 
-        if (options.serialize){
+        if ( options.serialize ) {
 
-            files_filtered = _filterSerialize(files, options.serialize)
+            files_filtered = _filterSerialize( result.listed_files, options.serialize )
 
-        }else if (options.filter){
+        } else if ( options.filter ) {
 
-            files_filtered = _filterStandard(files, options.filter)
+            files_filtered = _filterStandard( result.listed_files, options.filter )
 
-        }else{
+        } else {
 
-            debug('filter no filter');
+            debug( 'filter no filter' );
 
             files_filtered = files;
 
         }
 
 
-        if (files_filtered.length == 0 ) {
+        if ( files_filtered.length == 0 ) {
 
             console.log( 'WARNING in text_file_import no files to load', files_filtered )
 
         }
 
-        self.files_filtered = files_filtered;
+        result.files_filtered = files_filtered;
 
-        return self.files_filtered;
+        return result;
 
     } );
 
     return this
 };
+
+/**
+ * Reads file register from the disk
+ *
+ * - `encoding` encoding to use when reading the file e.g. binary or utf8
+ *
+ * @memberOf Adapter
+ * @returns {Adapter}
+ */
+Adapter.prototype.readFileManager = function ( encoding ) {
+
+    let self = this;
+
+    if ( !this.path_file_manager ) {
+
+        return this
+
+    }
+
+    this._promise = this._promise.then( result => {
+
+        return read( [this.path_file_manager], encoding, self.credentials, self.type )
+            .then( file_manager => {
+
+                for ( let name in file_manager ) {
+
+                    if ( file_manager[name].modified < self.file_manager_modified ) {
+
+                        delete file_manager[name]
+
+                    }
+
+                }
+
+                result.file_manager = file_manager
+
+                return result
+
+            } )
+    } );
+
+    return this;
+};
+
+/**
+ * Reads file register from the disk
+ *
+ * - `encoding` encoding to use when reading the file e.g. binary or utf8
+ *
+ * @memberOf Adapter
+ * @returns {Adapter}
+ */
+Adapter.prototype.filterFromFileManager = function () {
+
+    let self = this;
+
+    if ( !this.path_file_manager ) {
+
+        return this
+
+    }
+
+    this._promise = this._promise.then( result => {
+
+        let filtered_files = [];
+        result.listed_files.forEach( file => {
+
+            if ( result.file_manager[file.name] ) {
+
+                filtered_files.push( file )
+
+            }
+
+            result.filtered_files = filtered_files
+            return result
+
+        } )
+    } )
+
+
+}
+
+
+return this;
+
+}
+;
+
 
 /**
  * Reads file content from the disk
@@ -310,35 +296,37 @@ Adapter.prototype.read = function ( encoding ) {
 
     let self = this;
 
-    this._promise = this._promise.then( files=> {
+    this._promise = this._promise.then( result => {
 
-        return new Promise( resolve=> {
+        return read( result.filtered_files, encoding, self.credentials, self.type )
 
-            if ( self.type == 'disk' ) {
-
-                debug( 'read disk' );
-                diskRead( files, encoding, resolve )
-
-            } else { //ftp
-
-                debug( 'read ftp' );
-                ftpRead( files, encoding, self.credentials, resolve )
-
-            }
-
-        } ).then( data=> {
-
-            data.forEach( d=> {
-
-                self.data.push( d )
-
-            } );
-
-            debug('read done')
-
-            return data
-
-        } );
+        // return new Promise( resolve => {
+        //
+        //     if ( self.type == 'disk' ) {
+        //
+        //         debug( 'read disk' );
+        //         diskRead( files, encoding, resolve )
+        //
+        //     } else { //ftp
+        //
+        //         debug( 'read ftp' );
+        //         ftpRead( files, encoding, self.credentials, resolve )
+        //
+        //     }
+        //
+        // } ).then( data => {
+        //
+        //     data.forEach( d => {
+        //
+        //         self.data.push( d )
+        //
+        //     } );
+        //
+        //     debug( 'read done' )
+        //
+        //     return data
+        //
+        // } );
 
     } );
 
@@ -362,39 +350,27 @@ Adapter.prototype.parse = function ( parse ) {
 
     this._promise = this._promise.then( () => {
 
-        debug( 'parse');
+        debug( 'parse' );
 
         let promise = Promise.resolve();
 
-        data.forEach( d=> {
+        data.forEach( d => {
 
-            promise = promise.then(()=>{
-                let _d=d;
-                return parse( _d ).then( json=> {
+            promise = promise.then( () => {
+                let _d = d;
+                return parse( _d ).then( json => {
 
                     _d.json = json;
 
-
-                    // resolve(json)
-
                 } )
-            }) ;
-            // new Promise( resolve=> {
-            //
-            //     parse( d ).then( json=> {
-            //
-            //         d.json = json;
-            //
-            //         resolve(json)
-            //     } )
-            // } );
+            } );
         } );
 
-        promise =  promise.then(()=>{
+        promise = promise.then( () => {
 
             return data
 
-        });
+        } );
 
         return promise
 
@@ -523,11 +499,11 @@ Adapter.prototype.parse = function ( parse ) {
  *    - `name_full` {string} Filename of file with full snapshot
  *  one
  */
-Adapter.prototype.serialize = function(options) {
+Adapter.prototype.serialize = function ( options ) {
 
-    if (!options){
+    if ( !options ) {
 
-        debug( 'serialize skip');
+        debug( 'serialize skip' );
         return this
 
     }
@@ -535,12 +511,12 @@ Adapter.prototype.serialize = function(options) {
     let name_full = options.name_full;
     let serialize = options.merge;
 
-    let self=this;
+    let self = this;
 
 
     this._promise = this._promise.then( () => {
 
-        debug( 'serialize');
+        debug( 'serialize' );
 
         let full = [];
         let incremental = [];
@@ -583,21 +559,21 @@ Adapter.prototype.serialize = function(options) {
 
             full.json = serialize( full.json, inc.json );
 
-            if (! full.files_incremental){
+            if ( !full.files_incremental ) {
 
-                full.files_incremental=[inc.file_name];
-                full.texts_incremental=[inc.text];
+                full.files_incremental = [inc.file_name];
+                full.texts_incremental = [inc.text];
 
-            }else{
+            } else {
 
-                full.files_incremental.push(inc.file_name);
-                full.texts_incremental.push(inc.text);
+                full.files_incremental.push( inc.file_name );
+                full.texts_incremental.push( inc.text );
             }
 
 
         } );
 
-        self.data=[full];
+        self.data = [full];
 
         return self.data;
 
@@ -607,6 +583,112 @@ Adapter.prototype.serialize = function(options) {
 
 }
 
+function sortFiles( files ) {
+
+    return files.sort( ( a, b ) => {
+
+        a = a.last_modified;
+        b = b.last_modified;
+
+        if ( a < b ) {
+
+            return 1
+
+        } else if ( a > b ) {
+
+            return -1
+
+        } else {
+
+            return 0
+
+        }
+
+    } );
+}
+
+function _filterSerialize( files, serialize ) {
+
+    debug( 'filter serialize' );
+
+    let overlap = serialize.overlap ? serialize.overlap : 0;
+
+    let full;
+    let filtered = [];
+    files.forEach( d => {
+
+
+        if ( d.name == serialize.name_full ) {
+
+            full = d;
+        }
+
+        filtered.push( d )
+
+    } );
+
+
+    if ( !full ) {
+
+        let err = new Error( 'Missing file with snapshot. Need to set name_full options correct' )
+        console.error( err )
+        throw err
+
+    }
+
+    let date_full = moment( full.last_modified ).subtract( overlap, 'minutes' )
+
+    filtered = sortFiles( filtered )
+
+    debug( filtered );
+    debug( date_full );
+
+    filtered = filtered.reduce( ( tot, val ) => {
+
+        let date_inc = moment( val.last_modified );
+
+        debug( date_inc );
+
+        if ( date_full <= date_inc ) {
+
+            tot.push( val )
+
+        }
+
+        return tot
+
+    }, [] );
+
+    return filtered
+
+
+}
+
+function _filterStandard( files, filter ) {
+
+    debug( 'filter standard' );
+
+    let files_filtered = [];
+
+    //let result;
+    files.forEach( f => {
+
+        if ( filter( f ) ) {
+
+            files_filtered.push( f )
+
+        }
+
+    } );
+
+    files_filtered = sortFiles( files_filtered )
+
+    return files_filtered
+
+
+}
+
+
 function diskList( directory, resolve ) {
 
     debug( 'diskList' );
@@ -615,7 +697,7 @@ function diskList( directory, resolve ) {
 
     let _files = fs.readdirSync( directory );
 
-    debug( 'diskList dir', directory, 'no files', _files.length, 'first file:',_files[0] );
+    debug( 'diskList dir', directory, 'no files', _files.length, 'first file:', _files[0] );
 
     _files.forEach( file => {
 
@@ -624,8 +706,8 @@ function diskList( directory, resolve ) {
             path: directory + '/' + file,
             name: file,
             directory: directory,
-            last_modified: moment(fs.lstatSync(directory + '/' + file).mtime).format('YYYY-MM-DD HH:mm'),
-            imported_at: moment().format('YYYY-MM-DD HH:mm')
+            last_modified: moment( fs.lstatSync( directory + '/' + file ).mtime ).format( 'YYYY-MM-DD HH:mm' ),
+            imported_at: moment().format( 'YYYY-MM-DD HH:mm' )
 
         } )
 
@@ -642,7 +724,7 @@ function diskRead( files, encoding, resolve ) {
 
     let data = [];
 
-    files.forEach( f=> {
+    files.forEach( f => {
 
         let text = fs.readFileSync( f.path, encoding );
         data.push( {
@@ -672,24 +754,24 @@ function ftpList( directory, credentials, resolve, reject ) {
     var c = Client();
     c.on( 'ready', function () {
 
-        debug('ftpList', directory);
+        debug( 'ftpList', directory );
 
         c.list( directory, function ( err, list ) {
-            if ( err ){
+            if ( err ) {
                 c.end()
                 return reject( err );
 
             }
 
             let files = [];
-            list.forEach( ( l )=> {
+            list.forEach( ( l ) => {
 
                 files.push( {
                     path: directory + '/' + l.name,
                     name: l.name,
                     directory: directory,
-                    last_modified: moment(l.date).format('YYYY-MM-DD HH:mm'),
-                    imported_at: moment().format('YYYY-MM-DD HH:mm')
+                    last_modified: moment( l.date ).format( 'YYYY-MM-DD HH:mm' ),
+                    imported_at: moment().format( 'YYYY-MM-DD HH:mm' )
                 } )
             } );
 
@@ -725,12 +807,12 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
         let promise = Promise.resolve();
 
-        debug('ftpRead ', files.length, 'files');
+        debug( 'ftpRead ', files.length, 'files' );
 
-        files.forEach( f=> {
+        files.forEach( f => {
 
-            promise = promise.then( ()=> {
-                return new Promise( resolveInner=> {
+            promise = promise.then( () => {
+                return new Promise( resolveInner => {
 
                     c.get( f.path, function ( err, stream ) {
 
@@ -738,9 +820,9 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
                         counter.open++;
 
-                        if ( err ){
+                        if ( err ) {
 
-                            console.error('text-file-import ftpRead WARNING: ', f, err);
+                            console.error( 'text-file-import ftpRead WARNING: ', f, err );
 
                             data.push( {
                                 text: string,
@@ -778,7 +860,7 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
         } );
 
-        promise.then( ()=> {
+        promise.then( () => {
 
             c.end()
 
@@ -791,6 +873,38 @@ function ftpRead( files, encoding, credentials, resolve ) {
 }
 
 
-module.exports = ( options )=> {
+function read( files, encoding, credentials, type ) {
+
+    return new Promise( resolve => {
+
+        if ( type == 'disk' ) {
+
+            debug( 'read disk' );
+            diskRead( files, encoding, resolve )
+
+        } else { //ftp
+
+            debug( 'read ftp' );
+            ftpRead( files, encoding, credentials, resolve )
+
+        }
+
+    } ).then( data => {
+
+        data.forEach( d => {
+
+            self.data.push( d )
+
+        } );
+
+        debug( 'read done' )
+
+        return data
+
+
+    }
+}
+
+module.exports = ( options ) => {
     return new Adapter( options )
 };
