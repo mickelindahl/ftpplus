@@ -35,7 +35,8 @@ class Adapter {
         // super(options, options);
 
         this.credentials = options.credentials;
-        this.file_manager_modified = options.file_manager_modified;
+        // this.file_manager_modified = options.file_manager_modified;
+        this.getModified = options.getModified;
         this.path_file_manager = options.path_file_manager;
         this.data = [];
         this.files = [];
@@ -216,12 +217,16 @@ Adapter.prototype.readFileManager = function ( encoding ) {
 
     this._promise = this._promise.then( result => {
 
-        return read( [this.path_file_manager], encoding, self.credentials, self.type )
-            .then( file_manager => {
+        let path = this.path_file_manager
+
+        return read( [{path}], encoding, self.credentials, self.type )
+            .then( data => {
+
+                let file_manager = JSON.parse(data[0].text)
 
                 for ( let name in file_manager ) {
 
-                    if ( file_manager[name].modified < self.file_manager_modified ) {
+                    if ( file_manager[name].modified < self.getModified() ) {
 
                         delete file_manager[name]
 
@@ -262,26 +267,30 @@ Adapter.prototype.filterFromFileManager = function () {
         let filtered_files = [];
         result.listed_files.forEach( file => {
 
+
+
             if ( result.file_manager[file.name] ) {
 
                 filtered_files.push( file )
 
             }
 
-            result.filtered_files = filtered_files
-            return result
+
 
         } )
+
+        // debug(filtered_files)
+        // // debug(result.file_manager)
+        // throw 1
+
+        result.filtered_files = filtered_files
+        return result
     } )
 
 
-}
+    return this;
 
-
-return this;
-
-}
-;
+};
 
 
 /**
@@ -298,7 +307,8 @@ Adapter.prototype.read = function ( encoding ) {
 
     this._promise = this._promise.then( result => {
 
-        return read( result.filtered_files, encoding, self.credentials, self.type )
+        let files = result.filtered_files || result.listed_files
+        return read( files,  encoding, self.credentials, self.type )
 
         // return new Promise( resolve => {
         //
@@ -346,9 +356,9 @@ Adapter.prototype.read = function ( encoding ) {
  */
 Adapter.prototype.parse = function ( parse ) {
 
-    let data = this.data;
+    // let data = this.data;
 
-    this._promise = this._promise.then( () => {
+    this._promise = this._promise.then( data => {
 
         debug( 'parse' );
 
@@ -367,6 +377,8 @@ Adapter.prototype.parse = function ( parse ) {
         } );
 
         promise = promise.then( () => {
+
+            // self.data = data;
 
             return data
 
@@ -640,14 +652,14 @@ function _filterSerialize( files, serialize ) {
 
     filtered = sortFiles( filtered )
 
-    debug( filtered );
-    debug( date_full );
+    // debug( filtered );
+    // debug( date_full );
 
     filtered = filtered.reduce( ( tot, val ) => {
 
         let date_inc = moment( val.last_modified );
 
-        debug( date_inc );
+        // debug( date_inc );
 
         if ( date_full <= date_inc ) {
 
@@ -888,21 +900,7 @@ function read( files, encoding, credentials, type ) {
             ftpRead( files, encoding, credentials, resolve )
 
         }
-
-    } ).then( data => {
-
-        data.forEach( d => {
-
-            self.data.push( d )
-
-        } );
-
-        debug( 'read done' )
-
-        return data
-
-
-    }
+    } )
 }
 
 module.exports = ( options ) => {
