@@ -37,6 +37,7 @@ class Adapter {
         this.credentials = options.credentials;
         // this.file_manager_modified = options.file_manager_modified;
         this.getModified = options.getModified;
+        this.setModified = options.setModified;
         this.path_file_manager = options.path_file_manager;
         this.data = [];
         this.files = [];
@@ -177,7 +178,7 @@ Adapter.prototype.filter = function ( options ) {
 
             debug( 'filter no filter' );
 
-            files_filtered = files;
+            files_filtered =  result.listed_files;
 
         }
 
@@ -211,6 +212,7 @@ Adapter.prototype.readFileManager = function ( encoding ) {
 
     if ( !this.path_file_manager ) {
 
+        debug('Skipping readFileManager')
         return this
 
     }
@@ -219,14 +221,14 @@ Adapter.prototype.readFileManager = function ( encoding ) {
 
         let path = this.path_file_manager
 
-        return read( [{path}], encoding, self.credentials, self.type )
+        return read( [{ path }], encoding, self.credentials, self.type )
             .then( data => {
 
-                let file_manager = JSON.parse(data[0].text)
+                let file_manager = JSON.parse( data[0].text )
 
                 for ( let name in file_manager ) {
 
-                    if ( file_manager[name].modified < self.getModified() ) {
+                    if ( self.getModified() && file_manager[name].modified < self.getModified() ) {
 
                         delete file_manager[name]
 
@@ -235,6 +237,27 @@ Adapter.prototype.readFileManager = function ( encoding ) {
                 }
 
                 result.file_manager = file_manager
+
+                let date
+                for ( let name in file_manager ) {
+
+                    if ( !date ) {
+
+                        date = file_manager[name].modified
+
+                    } else if (file_manager[name].modified>date){
+
+                        date = file_manager[name].modified
+
+                    }
+
+
+                }
+                //
+                // debug(date)
+                // throw 1
+
+                self.setModified(date)
 
                 return result
 
@@ -258,6 +281,7 @@ Adapter.prototype.filterFromFileManager = function () {
 
     if ( !this.path_file_manager ) {
 
+        debug('Skipping filterFromFileManager')
         return this
 
     }
@@ -267,21 +291,12 @@ Adapter.prototype.filterFromFileManager = function () {
         let filtered_files = [];
         result.listed_files.forEach( file => {
 
-
-
             if ( result.file_manager[file.name] ) {
 
                 filtered_files.push( file )
 
             }
-
-
-
         } )
-
-        // debug(filtered_files)
-        // // debug(result.file_manager)
-        // throw 1
 
         result.filtered_files = filtered_files
         return result
@@ -308,35 +323,7 @@ Adapter.prototype.read = function ( encoding ) {
     this._promise = this._promise.then( result => {
 
         let files = result.filtered_files || result.listed_files
-        return read( files,  encoding, self.credentials, self.type )
-
-        // return new Promise( resolve => {
-        //
-        //     if ( self.type == 'disk' ) {
-        //
-        //         debug( 'read disk' );
-        //         diskRead( files, encoding, resolve )
-        //
-        //     } else { //ftp
-        //
-        //         debug( 'read ftp' );
-        //         ftpRead( files, encoding, self.credentials, resolve )
-        //
-        //     }
-        //
-        // } ).then( data => {
-        //
-        //     data.forEach( d => {
-        //
-        //         self.data.push( d )
-        //
-        //     } );
-        //
-        //     debug( 'read done' )
-        //
-        //     return data
-        //
-        // } );
+        return read( files, encoding, self.credentials, self.type )
 
     } );
 
@@ -377,8 +364,6 @@ Adapter.prototype.parse = function ( parse ) {
         } );
 
         promise = promise.then( () => {
-
-            // self.data = data;
 
             return data
 
@@ -685,6 +670,9 @@ function _filterStandard( files, filter ) {
     //let result;
     files.forEach( f => {
 
+        // debug(filter( f ))
+        // throw 1
+
         if ( filter( f ) ) {
 
             files_filtered.push( f )
@@ -737,6 +725,8 @@ function diskRead( files, encoding, resolve ) {
     let data = [];
 
     files.forEach( f => {
+
+        debug( f )
 
         let text = fs.readFileSync( f.path, encoding );
         data.push( {
