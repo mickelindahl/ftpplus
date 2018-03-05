@@ -23,7 +23,7 @@ const moment = require( 'moment' );
  *   - `files_visible` Files in the directory that are visible.
  *   Visibility can be controlled by the filter. Files that are included in the
  *   filter are always visible
- *   - `files_filtered` Filtered set of files
+ *   - `filtered_files` Filtered set of files
  *   - `type` string source type to import from disk|ftp
  *
  *
@@ -42,7 +42,7 @@ class Adapter {
         this.data = [];
         this.files = [];
         //this.files_visible=[];
-        this.files_filtered = [];
+        this.filtered_files = [];
         this.type = options.type;
         this._promise = Promise.resolve();
 
@@ -164,32 +164,35 @@ Adapter.prototype.filter = function ( options ) {
 
         debug( 'filter' );
 
-        let files_filtered;
+        let filtered_files;
 
         if ( options.serialize ) {
 
-            files_filtered = _filterSerialize( result.listed_files, options.serialize )
+            filtered_files = _filterSerialize( result.listed_files, options.serialize )
 
         } else if ( options.filter ) {
 
-            files_filtered = _filterStandard( result.listed_files, options.filter )
+            filtered_files = _filterStandard( result.listed_files, options.filter )
 
         } else {
 
             debug( 'filter no filter' );
 
-            files_filtered =  result.listed_files;
+            filtered_files =  result.listed_files;
 
         }
 
 
-        if ( files_filtered.length == 0 ) {
+        if ( filtered_files.length == 0 ) {
 
-            console.log( 'WARNING in text_file_import no files to load', files_filtered )
+            console.log( 'WARNING in text_file_import no files to load', filtered_files )
 
         }
 
-        result.files_filtered = files_filtered;
+        // debug(JSON.stringify(options.filter))
+        // debug(filtered_files)
+        // throw 1
+        result.filtered_files = filtered_files;
 
         return result;
 
@@ -477,9 +480,9 @@ Adapter.prototype.parse = function ( parse ) {
 //
 //        debug( 'serialize filter', filtered.length );
 //
-//        self.files_filtered=filtered;
+//        self.filtered_files=filtered;
 //
-//        return self.files_filtered;
+//        return self.filtered_files;
 //
 //    } )
 //
@@ -665,25 +668,22 @@ function _filterStandard( files, filter ) {
 
     debug( 'filter standard' );
 
-    let files_filtered = [];
+    let filtered_files = [];
 
     //let result;
     files.forEach( f => {
 
-        // debug(filter( f ))
-        // throw 1
-
         if ( filter( f ) ) {
 
-            files_filtered.push( f )
+            filtered_files.push( f )
 
         }
 
     } );
 
-    files_filtered = sortFiles( files_filtered )
+    filtered_files = sortFiles( filtered_files )
 
-    return files_filtered
+    return filtered_files
 
 
 }
@@ -756,7 +756,7 @@ function ftpList( directory, credentials, resolve, reject ) {
     var c = Client();
     c.on( 'ready', function () {
 
-        debug( 'ftpList', directory );
+        debug( 'ftpList', directory ,credentials);
 
         c.list( directory, function ( err, list ) {
             if ( err ) {
