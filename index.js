@@ -240,8 +240,13 @@ Adapter.prototype.readFileManager = function ( encoding ) {
 
                 result.file_manager = file_manager
 
-                let date
+                // debug(self.getModified())
+
+
+                let date=self.getModified()
                 for ( let name in file_manager ) {
+
+                    // debug(name, file_manager[name].modified)
 
                     if ( !date ) {
 
@@ -252,11 +257,10 @@ Adapter.prototype.readFileManager = function ( encoding ) {
                         date = file_manager[name].modified
 
                     }
-
-
                 }
 
                 self.setModified(date)
+                // debug(self.getModified())
 
                 return result
 
@@ -298,6 +302,8 @@ Adapter.prototype.filterFromFileManager = function () {
         } )
 
         result.filtered_files = filtered_files
+
+
         return result
     } )
 
