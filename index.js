@@ -182,7 +182,6 @@ Adapter.prototype.filter = function ( options ) {
 
         }
 
-
         if ( filtered_files.length == 0 ) {
 
             console.log( 'WARNING in text_file_import no files to load', filtered_files )
@@ -256,9 +255,6 @@ Adapter.prototype.readFileManager = function ( encoding ) {
 
 
                 }
-                //
-                // debug(date)
-                // throw 1
 
                 self.setModified(date)
 
@@ -292,7 +288,7 @@ Adapter.prototype.filterFromFileManager = function () {
     this._promise = this._promise.then( result => {
 
         let filtered_files = [];
-        result.listed_files.forEach( file => {
+        result.filtered_files.forEach( file => {
 
             if ( result.file_manager[file.name] ) {
 
@@ -756,7 +752,7 @@ function ftpList( directory, credentials, resolve, reject ) {
     var c = Client();
     c.on( 'ready', function () {
 
-        debug( 'ftpList', directory ,credentials);
+        debug( 'ftpList', directory);
 
         c.list( directory, function ( err, list ) {
             if ( err ) {
