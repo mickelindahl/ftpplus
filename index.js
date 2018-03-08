@@ -705,6 +705,8 @@ function ftpRead( files, encoding, credentials, resolve, is_gzip ) {
             promise = promise.then( () => {
                 return new Promise( resolveInner => {
 
+                    debug('path',f.path)
+
                     c.get( f.path, function ( err, stream ) {
 
                         // let string = '';
