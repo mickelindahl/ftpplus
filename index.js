@@ -9,7 +9,7 @@ const Promise = require( 'bluebird' );
 const debug = require( 'debug' )( 'text_file_import:index.js' );
 const fs = require( 'fs' );
 const moment = require( 'moment' );
-
+const zlib = require('zlib');
 
 /**
  * Class used to import files from disk or over ftp
@@ -44,6 +44,7 @@ class Adapter {
         //this.files_visible=[];
         this.filtered_files = [];
         this.type = options.type;
+        this.is_gzip = options.is_gzip;
         this._promise = Promise.resolve();
 
         if ( ['ftp', 'disk'].indexOf( this.type ) == -1 ) {
@@ -322,7 +323,7 @@ Adapter.prototype.read = function ( encoding ) {
     this._promise = this._promise.then( result => {
 
         let files = result.filtered_files || result.listed_files
-        return read( files, encoding, self.credentials, self.type )
+        return read( files, encoding, self.credentials, self.type, self.is_gzip)
 
     } );
 
@@ -603,7 +604,7 @@ function diskList( directory, resolve ) {
 }
 
 
-function diskRead( files, encoding, resolve ) {
+function diskRead( files, encoding, resolve, is_gzip ) {
 
     debug( 'diskRead' );
 
@@ -613,7 +614,9 @@ function diskRead( files, encoding, resolve ) {
 
         debug( f )
 
-        let text = fs.readFileSync( f.path, encoding );
+        let buffer = fs.readFileSync( f.path);
+        let text = to_string(buffer, encoding, is_gzip)
+
         data.push( {
             text: text,
             file_name: f.name
@@ -669,6 +672,7 @@ function ftpList( directory, credentials, resolve, reject ) {
     } ).connect( credentials );
 }
 
+
 /**
  *  Read files over ftp
  *
@@ -682,7 +686,7 @@ function ftpList( directory, credentials, resolve, reject ) {
  * - `resolve` promise resolve handler
  *   @returns {promise} list with data from each file
  */
-function ftpRead( files, encoding, credentials, resolve ) {
+function ftpRead( files, encoding, credentials, resolve, is_gzip ) {
 
 
     let data = [];
@@ -714,7 +718,7 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
                             data.push( {
                                 // text: string,
-                                text: buffer.toString( encoding ),
+                                text: to_string(buffer, encoding, is_gzip),
                                 file_name: f.name
                             } );
 
@@ -736,7 +740,7 @@ function ftpRead( files, encoding, credentials, resolve ) {
                             // c.end();
 
                             data.push( {
-                                text: buffer.toString( encoding ),
+                                text: to_string(buffer, encoding, is_gzip),
                                 file_name: f.name
                             } );
 
@@ -763,22 +767,36 @@ function ftpRead( files, encoding, credentials, resolve ) {
 }
 
 
-function read( files, encoding, credentials, type ) {
+function read( files, encoding, credentials, type,  is_gzip) {
 
     return new Promise( resolve => {
 
         if ( type == 'disk' ) {
 
             debug( 'read disk' );
-            diskRead( files, encoding, resolve )
+            diskRead( files, encoding, resolve, is_gzip )
 
         } else { //ftp
 
             debug( 'read ftp' );
-            ftpRead( files, encoding, credentials, resolve )
+            ftpRead( files, encoding, credentials, resolve, is_gzip )
 
         }
     } )
+}
+
+function to_string(buffer, encoding, is_gzip){
+
+    if (is_gzip){
+
+        buffer = zlib.unzipSync(buffer);
+        return buffer.toString();
+
+    }else{
+
+        return buffer.toString( encoding )
+
+    }
 }
 
 module.exports = ( options ) => {
