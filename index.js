@@ -240,13 +240,8 @@ Adapter.prototype.readFileManager = function ( encoding ) {
 
                 result.file_manager = file_manager
 
-                // debug(self.getModified())
-
-
-                let date=self.getModified()
+                let date
                 for ( let name in file_manager ) {
-
-                    // debug(name, file_manager[name].modified)
 
                     if ( !date ) {
 
@@ -257,10 +252,11 @@ Adapter.prototype.readFileManager = function ( encoding ) {
                         date = file_manager[name].modified
 
                     }
+
+
                 }
 
                 self.setModified(date)
-                // debug(self.getModified())
 
                 return result
 
@@ -302,8 +298,6 @@ Adapter.prototype.filterFromFileManager = function () {
         } )
 
         result.filtered_files = filtered_files
-
-
         return result
     } )
 
@@ -381,117 +375,6 @@ Adapter.prototype.parse = function ( parse ) {
     return this
 
 };
-
-///**
-// *  Serialize content of files into one dataset
-// *
-// *  - `options`
-// *    - `name_full` {string} Filename of file with full snapshot
-// *    - `overlap` {integer} Overlap in minutes between full and first incremental
-// *  one
-// */
-//Adapter.prototype.filter_serialize = function(options) {
-//
-//    if (!options){
-//
-//        debug( 'filter serialize skip');
-//        return this
-//
-//    }
-//
-//    let name_full = options.name_full;
-//    let overlap =  options.overlap;
-//
-//    let self=this;
-//
-//    overlap = overlap ? overlap : 0;
-//
-//    this._promise = this._promise.then( files => {
-//
-//        debug( 'serialize filter');
-//
-//        let full;
-//        let filtered = [];
-//        files.forEach( d => {
-//
-//
-//            if ( d.name == name_full ) {
-//
-//                full = d;
-//            }
-//
-//            filtered.push( d )
-//
-//        } );
-//
-//
-//        if (!full){
-//
-//            let err = new Error('Missing file with snapshot. Need to set name_full options correct')
-//            console.error(err)
-//            throw err
-//
-//        }
-//
-//        filtered = filtered.sort( ( a, b ) => {
-//
-//            a = a.last_modified;
-//            b = b.last_modified;
-//
-//            if ( a < b ) {
-//
-//                return 1
-//
-//            } else if ( a > b ) {
-//
-//                return -1
-//
-//            } else {
-//
-//                return 0
-//
-//            }
-//
-//        } );
-//
-//        let date_full=moment(full.last_modified).subtract(overlap, 'minutes')
-//
-//
-//        debug( filtered );
-//        debug( date_full );
-//
-//        filtered = filtered.reduce((tot,val)=>{
-//
-//            let date_inc = moment(val.last_modified);
-//
-//            debug(date_inc);
-//
-//            if (date_full<=date_inc){
-//
-//                tot.push(val)
-//
-//            }
-//
-//            return tot
-//
-//        }, []);
-//
-//
-//        debug(filtered)
-//
-//
-//        debug( 'serialize filter', filtered.length );
-//
-//        self.filtered_files=filtered;
-//
-//        return self.filtered_files;
-//
-//    } )
-//
-//    return this
-//
-//}
-
 
 /**
  *  Serialize content of files into one dataset
@@ -820,7 +703,8 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
                     c.get( f.path, function ( err, stream ) {
 
-                        let string = '';
+                        // let string = '';
+                        let buffer = new Buffer('');
 
                         counter.open++;
 
@@ -829,7 +713,8 @@ function ftpRead( files, encoding, credentials, resolve ) {
                             console.error( 'text-file-import ftpRead WARNING: ', f, err );
 
                             data.push( {
-                                text: string,
+                                // text: string,
+                                text: buffer.toString( encoding ),
                                 file_name: f.name
                             } );
 
@@ -837,10 +722,11 @@ function ftpRead( files, encoding, credentials, resolve ) {
 
                         }
 
-                        stream.on( 'data', function ( buffer ) {
+                        stream.on( 'data', function ( a_buffer ) {
 
                             // debug( f.path, 'c.on data' );
-                            string += buffer.toString( encoding );
+                            buffer = Buffer.concat([buffer,a_buffer])
+                            // string += buffer.toString( encoding );
 
                         } );
 
@@ -850,7 +736,7 @@ function ftpRead( files, encoding, credentials, resolve ) {
                             // c.end();
 
                             data.push( {
-                                text: string,
+                                text: buffer.toString( encoding ),
                                 file_name: f.name
                             } );
 
